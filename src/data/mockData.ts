@@ -1,4 +1,4 @@
-import { Aviso, Celula, Evento, LancamentoFinanceiro, Membro, Visitante } from '../types';
+import { Aviso, Celula, Evento, LancamentoFinanceiro, Membro, RelatorioCelula, Visitante } from '../types';
 
 export const demoIgrejaId = 'igreja-demo';
 
@@ -47,6 +47,19 @@ export const celulasMock: Celula[] = [
     cep: '29200-000', logradouro: 'Rua Joaquim da Silva Lima', numero: '50', complemento: '',
     bairro: 'Centro', cidade: 'Guarapari', estado: 'ES', diaSemana: 'Sábado', horario: '18:00',
     status: 'Ativa', ativo: true
+  }
+];
+
+export const relatoriosCelulaMock: RelatorioCelula[] = [
+  {
+    id: 'rc1', igrejaId: demoIgrejaId, celulaId: 'c1', celulaNome: 'Casa de Paz - Praia do Morro',
+    liderId: 'demo-user', liderNome: 'Ana Cristina', dataReuniao: '2026-09-16',
+    presencas: [
+      { membroId: 'm1', nome: 'Ana Cristina', presente: true },
+      { membroId: 'm3', nome: 'Juliana Santos', presente: true }
+    ],
+    visitantes: [{ nome: 'Carlos Souza', telefone: '(27) 99999-3001' }],
+    ativo: true
   }
 ];
 

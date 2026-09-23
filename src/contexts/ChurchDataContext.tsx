@@ -2,8 +2,8 @@ import { createContext, ReactNode, useContext, useEffect, useMemo, useState } fr
 import type { Dispatch, SetStateAction } from 'react';
 import { firebaseEnabled } from '../firebase/config';
 import { useAuth } from './AuthContext';
-import { avisosMock, celulasMock, eventosMock, financeiroMock, membrosMock, visitantesMock } from '../data/mockData';
-import { Aviso, Celula, CollectionName, EntityMap, Evento, LancamentoFinanceiro, Membro, Visitante } from '../types';
+import { avisosMock, celulasMock, eventosMock, financeiroMock, membrosMock, relatoriosCelulaMock, visitantesMock } from '../data/mockData';
+import { Aviso, Celula, CollectionName, EntityMap, Evento, LancamentoFinanceiro, Membro, RelatorioCelula, Visitante } from '../types';
 import {
   atualizarDocumento,
   buscarCelulaPorId,
@@ -11,7 +11,8 @@ import {
   excluirLogicamente,
   listarColecao,
   listarFinanceiro,
-  listarMembrosPorCelula
+  listarMembrosPorCelula,
+  listarRelatoriosCelula
 } from '../services/firestoreRepository';
 
 type ChurchDataContextValue = {
@@ -19,6 +20,7 @@ type ChurchDataContextValue = {
   membros: Membro[];
   visitantes: Visitante[];
   celulas: Celula[];
+  relatoriosCelula: RelatorioCelula[];
   financeiro: LancamentoFinanceiro[];
   eventos: Evento[];
   avisos: Aviso[];
@@ -52,6 +54,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
   const [membros, setMembros] = useState<Membro[]>([]);
   const [visitantes, setVisitantes] = useState<Visitante[]>([]);
   const [celulas, setCelulas] = useState<Celula[]>([]);
+  const [relatoriosCelula, setRelatoriosCelula] = useState<RelatorioCelula[]>([]);
   const [financeiro, setFinanceiro] = useState<LancamentoFinanceiro[]>([]);
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [avisos, setAvisos] = useState<Aviso[]>([]);
@@ -65,6 +68,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
         setMembros(loadLocal('membros', membrosMock).filter((x) => x.ativo !== false));
         setVisitantes(loadLocal('visitantes', visitantesMock).filter((x) => x.ativo !== false));
         setCelulas(loadLocal('celulas', celulasMock).filter((x) => x.ativo !== false));
+        setRelatoriosCelula(loadLocal('relatoriosCelula', relatoriosCelulaMock).filter((x) => x.ativo !== false));
         setFinanceiro(loadLocal('financeiro', financeiroMock).filter((x) => x.ativo !== false));
         setEventos(loadLocal('eventos', eventosMock).filter((x) => x.ativo !== false));
         setAvisos(loadLocal('avisos', avisosMock).filter((x) => x.ativo !== false));
@@ -79,10 +83,15 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
         ? safeLoad(() => buscarCelulaPorId(user.celulaId!))
         : safeLoad(() => listarColecao('celulas', user.igrejaId));
 
-      const [m, v, c, f, e, a] = await Promise.all([
+      const relatoriosPromise = user.perfil === 'lider'
+        ? (user.celulaId ? safeLoad(() => listarRelatoriosCelula(user.igrejaId, user.celulaId)) : Promise.resolve([]))
+        : safeLoad(() => listarRelatoriosCelula(user.igrejaId));
+
+      const [m, v, c, rc, f, e, a] = await Promise.all([
         membrosPromise,
         safeLoad(() => listarColecao('visitantes', user.igrejaId)),
         celulasPromise,
+        relatoriosPromise,
         safeLoad(() => listarFinanceiro(user.igrejaId)),
         safeLoad(() => listarColecao('eventos', user.igrejaId)),
         safeLoad(() => listarColecao('avisos', user.igrejaId))
@@ -91,6 +100,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       setMembros(m.filter((x) => x.ativo !== false));
       setVisitantes(v.filter((x) => x.ativo !== false));
       setCelulas(c.filter((x) => x.ativo !== false));
+      setRelatoriosCelula(rc.filter((x) => x.ativo !== false));
       setFinanceiro(f.filter((x) => x.ativo !== false));
       setEventos(e.filter((x) => x.ativo !== false));
       setAvisos(a.filter((x) => x.ativo !== false));
@@ -109,6 +119,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       membros: [membros, setMembros],
       visitantes: [visitantes, setVisitantes],
       celulas: [celulas, setCelulas],
+      relatoriosCelula: [relatoriosCelula, setRelatoriosCelula],
       financeiro: [financeiro, setFinanceiro],
       eventos: [eventos, setEventos],
       avisos: [avisos, setAvisos]
@@ -156,9 +167,9 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo(() => ({
-    loading, membros, visitantes, celulas, financeiro, eventos, avisos,
+    loading, membros, visitantes, celulas, relatoriosCelula, financeiro, eventos, avisos,
     refresh, createItem, updateItem, removeItem
-  }), [loading, membros, visitantes, celulas, financeiro, eventos, avisos]);
+  }), [loading, membros, visitantes, celulas, relatoriosCelula, financeiro, eventos, avisos]);
 
   return <ChurchDataContext.Provider value={value}>{children}</ChurchDataContext.Provider>;
 }

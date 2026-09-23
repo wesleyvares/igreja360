@@ -68,6 +68,27 @@ export type Celula = BaseEntity & {
   status: 'Ativa' | 'Pausada' | 'Em implantação';
 };
 
+export type RelatorioCelulaPresenca = {
+  membroId: string;
+  nome: string;
+  presente: boolean;
+};
+
+export type RelatorioCelulaVisitante = {
+  nome: string;
+  telefone: string;
+};
+
+export type RelatorioCelula = BaseEntity & {
+  celulaId: string;
+  celulaNome: string;
+  liderId: string;
+  liderNome: string;
+  dataReuniao: string;
+  presencas: RelatorioCelulaPresenca[];
+  visitantes: RelatorioCelulaVisitante[];
+};
+
 export type LancamentoFinanceiro = BaseEntity & {
   data: string;
   tipo: 'Entrada' | 'Saída';
@@ -98,12 +119,13 @@ export type Aviso = BaseEntity & {
   mensagem: string;
 };
 
-export type CollectionName = 'membros' | 'visitantes' | 'celulas' | 'financeiro' | 'eventos' | 'avisos';
+export type CollectionName = 'membros' | 'visitantes' | 'celulas' | 'relatoriosCelula' | 'financeiro' | 'eventos' | 'avisos';
 
 export type EntityMap = {
   membros: Membro;
   visitantes: Visitante;
   celulas: Celula;
+  relatoriosCelula: RelatorioCelula;
   financeiro: LancamentoFinanceiro;
   eventos: Evento;
   avisos: Aviso;

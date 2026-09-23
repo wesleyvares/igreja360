@@ -37,6 +37,16 @@ export async function buscarCelulaPorId(celulaId: string): Promise<EntityMap['ce
   return [{ id: snap.id, ...snap.data() } as EntityMap['celulas']];
 }
 
+export async function listarRelatoriosCelula(igrejaId: string, celulaId?: string): Promise<EntityMap['relatoriosCelula'][]> {
+  if (!db) return [];
+  const ref = collection(db, 'relatoriosCelula');
+  const q = celulaId
+    ? query(ref, where('igrejaId', '==', igrejaId), where('celulaId', '==', celulaId), orderBy('dataReuniao', 'desc'))
+    : query(ref, where('igrejaId', '==', igrejaId), orderBy('dataReuniao', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as EntityMap['relatoriosCelula']);
+}
+
 export async function listarFinanceiro(igrejaId: string): Promise<EntityMap['financeiro'][]> {
   if (!db) return [];
   const ref = collection(db, 'financeiro');
