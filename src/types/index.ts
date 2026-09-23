@@ -87,22 +87,55 @@ export type RelatorioCelula = BaseEntity & {
   dataReuniao: string;
   presencas: RelatorioCelulaPresenca[];
   visitantes: RelatorioCelulaVisitante[];
-
   quemTocouLouvor: string;
   quemConduziuLouvores: string;
   louvoresMinistrados: string;
   quemMinistrouQuebraGelo: string;
   quemMinistrouPalavra: string;
   quemMinistrouCadeiraVazia: string;
-
   houvePedidoOracao: boolean;
   pedidoOracaoDescricao: string;
   houveTestemunho: boolean;
   testemunhoDescricao: string;
-
   preenchidoPorId: string;
   preenchidoPorNome: string;
   nivelParticipacao: 1 | 2 | 3 | 4 | 5;
+};
+
+export type AnexoSolicitacao = {
+  nome: string;
+  tipo: string;
+  tamanho: number;
+  url: string;
+  storagePath?: string;
+};
+
+export type StatusSolicitacaoFinanceira =
+  | 'Pendente aprovação'
+  | 'Aprovada para financeiro'
+  | 'Reprovada'
+  | 'Lançada no financeiro';
+
+export type SolicitacaoFinanceira = BaseEntity & {
+  tipo: 'Reembolso' | 'Compra';
+  dataSolicitacao: string;
+  categoria: string;
+  titulo: string;
+  descricao: string;
+  valor: number;
+  solicitanteId: string;
+  solicitanteNome: string;
+  status: StatusSolicitacaoFinanceira;
+  notaFiscal?: AnexoSolicitacao;
+  orcamentos: AnexoSolicitacao[];
+  observacaoAprovacao: string;
+  aprovadoPorId?: string;
+  aprovadoPorNome?: string;
+  aprovadoEm?: string;
+  processadoFinanceiroPorId?: string;
+  processadoFinanceiroPorNome?: string;
+  processadoFinanceiroEm?: string;
+  lancamentoFinanceiroId?: string;
 };
 
 export type LancamentoFinanceiro = BaseEntity & {
@@ -135,13 +168,22 @@ export type Aviso = BaseEntity & {
   mensagem: string;
 };
 
-export type CollectionName = 'membros' | 'visitantes' | 'celulas' | 'relatoriosCelula' | 'financeiro' | 'eventos' | 'avisos';
+export type CollectionName =
+  | 'membros'
+  | 'visitantes'
+  | 'celulas'
+  | 'relatoriosCelula'
+  | 'solicitacoesFinanceiras'
+  | 'financeiro'
+  | 'eventos'
+  | 'avisos';
 
 export type EntityMap = {
   membros: Membro;
   visitantes: Visitante;
   celulas: Celula;
   relatoriosCelula: RelatorioCelula;
+  solicitacoesFinanceiras: SolicitacaoFinanceira;
   financeiro: LancamentoFinanceiro;
   eventos: Evento;
   avisos: Aviso;
