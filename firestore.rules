@@ -13,8 +13,17 @@ service cloud.firestore {
     function internalRequester() { return roleIn(['pastor', 'admin', 'secretaria', 'tesoureiro', 'lider', 'midia']); }
 
     match /usuarios/{uid} {
-      allow read: if activeUser() && (request.auth.uid == uid || isAdminOrPastor());
-      allow create, update, delete: if isAdminOrPastor();
+      allow read: if activeUser() && (
+        request.auth.uid == uid ||
+        (isAdminOrPastor() && resource.data.igrejaId == userData().igrejaId)
+      );
+      allow create: if isAdminOrPastor() &&
+        request.resource.data.igrejaId == userData().igrejaId;
+      allow update: if isAdminOrPastor() &&
+        resource.data.igrejaId == userData().igrejaId &&
+        request.resource.data.igrejaId == resource.data.igrejaId;
+      allow delete: if isAdminOrPastor() &&
+        resource.data.igrejaId == userData().igrejaId;
     }
 
     match /igrejas/{igrejaId} {
@@ -38,14 +47,20 @@ service cloud.firestore {
     match /visitantes/{id} {
       allow read: if sameChurch(resource.data.igrejaId) && roleIn(['pastor', 'admin', 'secretaria', 'lider']);
       allow create: if sameChurch(request.resource.data.igrejaId) && roleIn(['pastor', 'admin', 'secretaria', 'lider']);
-      allow update, delete: if sameChurch(resource.data.igrejaId) && roleIn(['pastor', 'admin', 'secretaria', 'lider']);
+      allow update: if sameChurch(resource.data.igrejaId) &&
+        request.resource.data.igrejaId == resource.data.igrejaId &&
+        roleIn(['pastor', 'admin', 'secretaria', 'lider']);
+      allow delete: if sameChurch(resource.data.igrejaId) && roleIn(['pastor', 'admin', 'secretaria', 'lider']);
     }
 
     match /celulas/{id} {
       allow read: if sameChurch(resource.data.igrejaId) &&
         (roleIn(['pastor', 'admin', 'secretaria']) || (roleIn(['lider']) && userData().celulaId == id));
       allow create: if sameChurch(request.resource.data.igrejaId) && roleIn(['pastor', 'admin', 'secretaria']);
-      allow update, delete: if sameChurch(resource.data.igrejaId) && roleIn(['pastor', 'admin', 'secretaria']);
+      allow update: if sameChurch(resource.data.igrejaId) &&
+        request.resource.data.igrejaId == resource.data.igrejaId &&
+        roleIn(['pastor', 'admin', 'secretaria']);
+      allow delete: if sameChurch(resource.data.igrejaId) && roleIn(['pastor', 'admin', 'secretaria']);
     }
 
     match /relatoriosCelula/{id} {
@@ -113,8 +128,10 @@ service cloud.firestore {
     }
 
     match /auditoria/{id} {
-      allow read: if isAdminOrPastor();
-      allow create: if activeUser();
+      allow read: if isAdminOrPastor() && resource.data.igrejaId == userData().igrejaId;
+      allow create: if activeUser() &&
+        request.resource.data.igrejaId == userData().igrejaId &&
+        request.resource.data.usuarioId == request.auth.uid;
       allow update, delete: if false;
     }
 
