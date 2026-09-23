@@ -16,6 +16,7 @@ const initialForm: Omit<Celula, 'id'> = {
 
 export default function CelulasPage() {
   const { user } = useAuth();
+  const podeGerenciar = Boolean(user && ['pastor', 'admin', 'secretaria'].includes(user.perfil));
   const { celulas, membros, createItem, updateItem, removeItem } = useChurchData();
   const [busca, setBusca] = useState('');
   const [open, setOpen] = useState(false);
@@ -53,7 +54,7 @@ export default function CelulasPage() {
 
   return (
     <>
-      <PageHeader title="Células" subtitle="Cadastro de células. A quantidade de membros ativos é calculada automaticamente pelo cadastro dos membros." actions={<button className="btn btn-primary" onClick={novo}>+ Nova célula</button>} />
+      <PageHeader title="Células" subtitle="Cadastro de células. A quantidade de membros ativos é calculada automaticamente pelo cadastro dos membros." actions={podeGerenciar ? <button className="btn btn-primary" onClick={novo}>+ Nova célula</button> : undefined} />
       <div className="panel">
         <div className="panel-header"><div className="panel-title"><h3>Cadastro de células</h3><span>{rows.length} célula(s) cadastrada(s)</span></div><input className="search-input" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar célula" /></div>
         <DataTable<Celula> rows={rows} minWidth={1050} columns={[
@@ -64,7 +65,7 @@ export default function CelulasPage() {
           { header: 'Horário', render: (r) => r.horario || '-' },
           { header: 'Membros ativos', render: (r) => <strong>{qtdMembrosAtivos(r.id)}</strong> },
           { header: 'Status', render: (r) => <Badge color={r.status === 'Ativa' ? 'green' : 'orange'}>{r.status}</Badge> },
-          { header: 'Ações', render: (r) => <div className="actions"><button className="icon-btn" onClick={() => editar(r)}>✏️</button><button className="icon-btn" onClick={() => removeItem('celulas', r.id)}>🗑️</button></div> }
+          { header: 'Ações', render: (r) => podeGerenciar ? <div className="actions"><button className="icon-btn" onClick={() => editar(r)}>✏️</button><button className="icon-btn" onClick={() => removeItem('celulas', r.id)}>🗑️</button></div> : <Badge color="gray">Somente leitura</Badge> }
         ]} />
       </div>
 

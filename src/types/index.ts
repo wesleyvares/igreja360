@@ -6,6 +6,7 @@ export type AppUser = {
   email: string;
   perfil: PerfilUsuario;
   igrejaId: string;
+  celulaId?: string;
   ativo: boolean;
 };
 

@@ -4,7 +4,15 @@ import { firebaseEnabled } from '../firebase/config';
 import { useAuth } from './AuthContext';
 import { avisosMock, celulasMock, eventosMock, financeiroMock, membrosMock, visitantesMock } from '../data/mockData';
 import { Aviso, Celula, CollectionName, EntityMap, Evento, LancamentoFinanceiro, Membro, Visitante } from '../types';
-import { criarDocumento, excluirLogicamente, listarColecao, listarFinanceiro, atualizarDocumento } from '../services/firestoreRepository';
+import {
+  atualizarDocumento,
+  buscarCelulaPorId,
+  criarDocumento,
+  excluirLogicamente,
+  listarColecao,
+  listarFinanceiro,
+  listarMembrosPorCelula
+} from '../services/firestoreRepository';
 
 type ChurchDataContextValue = {
   loading: boolean;
@@ -22,18 +30,12 @@ type ChurchDataContextValue = {
 
 const ChurchDataContext = createContext<ChurchDataContextValue | undefined>(undefined);
 
-function localKey(collection: string) {
-  return `igreja360_${collection}`;
-}
+function localKey(collection: string) { return `igreja360_${collection}`; }
 
 function loadLocal<T>(collection: string, fallback: T[]): T[] {
   const raw = localStorage.getItem(localKey(collection));
   if (!raw) return fallback;
-  try {
-    return JSON.parse(raw) as T[];
-  } catch {
-    return fallback;
-  }
+  try { return JSON.parse(raw) as T[]; } catch { return fallback; }
 }
 
 function saveLocal<T>(collection: string, rows: T[]) {
@@ -41,11 +43,7 @@ function saveLocal<T>(collection: string, rows: T[]) {
 }
 
 async function safeLoad<T>(fn: () => Promise<T[]>) {
-  try {
-    return await fn();
-  } catch {
-    return [] as T[];
-  }
+  try { return await fn(); } catch { return [] as T[]; }
 }
 
 export function ChurchDataProvider({ children }: { children: ReactNode }) {
@@ -59,10 +57,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
   const [avisos, setAvisos] = useState<Aviso[]>([]);
 
   async function refresh() {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) { setLoading(false); return; }
 
     setLoading(true);
     try {
@@ -76,10 +71,18 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      const membrosPromise = user.perfil === 'lider' && user.celulaId
+        ? safeLoad(() => listarMembrosPorCelula(user.igrejaId, user.celulaId!))
+        : safeLoad(() => listarColecao('membros', user.igrejaId));
+
+      const celulasPromise = user.perfil === 'lider' && user.celulaId
+        ? safeLoad(() => buscarCelulaPorId(user.celulaId!))
+        : safeLoad(() => listarColecao('celulas', user.igrejaId));
+
       const [m, v, c, f, e, a] = await Promise.all([
-        safeLoad(() => listarColecao('membros', user.igrejaId)),
+        membrosPromise,
         safeLoad(() => listarColecao('visitantes', user.igrejaId)),
-        safeLoad(() => listarColecao('celulas', user.igrejaId)),
+        celulasPromise,
         safeLoad(() => listarFinanceiro(user.igrejaId)),
         safeLoad(() => listarColecao('eventos', user.igrejaId)),
         safeLoad(() => listarColecao('avisos', user.igrejaId))
@@ -99,7 +102,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid]);
+  }, [user?.uid, user?.celulaId]);
 
   function getStateSetter(collection: CollectionName) {
     return {
@@ -119,7 +122,6 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       await refresh();
       return;
     }
-
     const [rows, setter] = getStateSetter(collection) as unknown as [EntityMap[K][], Dispatch<SetStateAction<EntityMap[K][]>>];
     const newItem = { ...item, id: crypto.randomUUID(), igrejaId: user.igrejaId, ativo: true } as EntityMap[K];
     const next = [newItem, ...rows];
@@ -134,7 +136,6 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       await refresh();
       return;
     }
-
     const [rows, setter] = getStateSetter(collection) as unknown as [EntityMap[K][], Dispatch<SetStateAction<EntityMap[K][]>>];
     const next = rows.map((row) => (row.id === id ? { ...row, ...item } : row));
     setter(next);
@@ -148,7 +149,6 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       await refresh();
       return;
     }
-
     const [rows, setter] = getStateSetter(collection) as unknown as [EntityMap[K][], Dispatch<SetStateAction<EntityMap[K][]>>];
     const next = rows.filter((row) => row.id !== id);
     setter(next);

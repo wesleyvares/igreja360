@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
@@ -19,6 +20,21 @@ export async function listarColecao<K extends CollectionName>(colecao: K, igreja
   const q = query(ref, where('igrejaId', '==', igrejaId));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as EntityMap[K]);
+}
+
+export async function listarMembrosPorCelula(igrejaId: string, celulaId: string): Promise<EntityMap['membros'][]> {
+  if (!db || !celulaId) return [];
+  const ref = collection(db, 'membros');
+  const q = query(ref, where('igrejaId', '==', igrejaId), where('celulaId', '==', celulaId));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as EntityMap['membros']);
+}
+
+export async function buscarCelulaPorId(celulaId: string): Promise<EntityMap['celulas'][]> {
+  if (!db || !celulaId) return [];
+  const snap = await getDoc(doc(db, 'celulas', celulaId));
+  if (!snap.exists()) return [];
+  return [{ id: snap.id, ...snap.data() } as EntityMap['celulas']];
 }
 
 export async function listarFinanceiro(igrejaId: string): Promise<EntityMap['financeiro'][]> {

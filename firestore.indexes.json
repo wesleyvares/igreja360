@@ -9,6 +9,14 @@
       ]
     },
     {
+      "collectionGroup": "membros",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "igrejaId", "order": "ASCENDING" },
+        { "fieldPath": "celulaId", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "financeiro",
       "queryScope": "COLLECTION",
       "fields": [
