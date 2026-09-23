@@ -1,14 +1,19 @@
 import { useMemo, useState } from 'react';
+import { Printer } from 'lucide-react';
 import Badge from '../components/Badge';
 import DataTable from '../components/DataTable';
 import PageHeader from '../components/PageHeader';
 import { useChurchData } from '../contexts/ChurchDataContext';
+import { useAuth } from '../contexts/AuthContext';
 import { exportarXlsx } from '../services/exportXlsx';
+import { emitirRelatorioTabela } from '../services/printReport';
+import { getReportBrandConfig } from '../services/reportConfig';
 import { dataBR, moedaBR } from '../utils/format';
 
 type TipoRelatorio = 'membrosAtivos' | 'visitantesPendentes' | 'financeiroEntradas' | 'financeiroSaidas' | 'eventosAbertos';
 
 export default function RelatoriosPage() {
+  const { user } = useAuth();
   const { membros, visitantes, financeiro, eventos } = useChurchData();
   const [tipo, setTipo] = useState<TipoRelatorio>('membrosAtivos');
 
@@ -20,9 +25,25 @@ export default function RelatoriosPage() {
     return eventos.filter((e) => e.status === 'Aberto' || e.status === 'Planejado').map((e) => ({ categoria: 'Evento', nome: e.titulo, detalhe: e.status, data: e.data, valor: e.local }));
   }, [tipo, membros, visitantes, financeiro, eventos]);
 
+  function emitir() {
+    const titulos: Record<TipoRelatorio, string> = {
+      membrosAtivos: 'Membros ativos',
+      visitantesPendentes: 'Visitantes pendentes',
+      financeiroEntradas: 'Relatório de entradas',
+      financeiroSaidas: 'Relatório de saídas',
+      eventosAbertos: 'Eventos abertos'
+    };
+    emitirRelatorioTabela(
+      getReportBrandConfig(user?.igrejaId || 'igreja-demo'),
+      titulos[tipo],
+      ['Categoria', 'Nome / descrição', 'Detalhe', 'Data', 'Valor / local'],
+      relatorio.map((r) => [r.categoria, r.nome, r.detalhe || '-', dataBR(r.data), r.valor || '-'])
+    );
+  }
+
   return (
     <>
-      <PageHeader title="Relatórios" subtitle="Relatórios rápidos para gestão, conferência e exportação." actions={<button className="btn btn-soft" onClick={() => exportarXlsx(relatorio, `relatorio_${tipo}.csv`, 'Relatório')}>Exportar relatório</button>} />
+      <PageHeader title="Relatórios" subtitle="Relatórios rápidos para gestão, conferência e emissão com a identidade da igreja." actions={<><button className="btn btn-soft" onClick={() => exportarXlsx(relatorio, `relatorio_${tipo}.csv`, 'Relatório')}>Exportar CSV</button><button className="btn btn-primary" onClick={emitir}><Printer size={16} /> Emitir / PDF</button></>} />
       <div className="report-grid">
         <button className={`report-card button-card ${tipo === 'membrosAtivos' ? 'selected' : ''}`} onClick={() => setTipo('membrosAtivos')}><h3>Membros ativos</h3><p>Lista de membros ativos.</p></button>
         <button className={`report-card button-card ${tipo === 'visitantesPendentes' ? 'selected' : ''}`} onClick={() => setTipo('visitantesPendentes')}><h3>Visitantes pendentes</h3><p>Novos e em acompanhamento.</p></button>
