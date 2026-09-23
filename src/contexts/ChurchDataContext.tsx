@@ -40,6 +40,14 @@ function saveLocal<T>(collection: string, rows: T[]) {
   localStorage.setItem(localKey(collection), JSON.stringify(rows));
 }
 
+async function safeLoad<T>(fn: () => Promise<T[]>) {
+  try {
+    return await fn();
+  } catch {
+    return [] as T[];
+  }
+}
+
 export function ChurchDataProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -69,12 +77,12 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       }
 
       const [m, v, c, f, e, a] = await Promise.all([
-        listarColecao('membros', user.igrejaId),
-        listarColecao('visitantes', user.igrejaId),
-        listarColecao('celulas', user.igrejaId),
-        listarFinanceiro(user.igrejaId),
-        listarColecao('eventos', user.igrejaId),
-        listarColecao('avisos', user.igrejaId)
+        safeLoad(() => listarColecao('membros', user.igrejaId)),
+        safeLoad(() => listarColecao('visitantes', user.igrejaId)),
+        safeLoad(() => listarColecao('celulas', user.igrejaId)),
+        safeLoad(() => listarFinanceiro(user.igrejaId)),
+        safeLoad(() => listarColecao('eventos', user.igrejaId)),
+        safeLoad(() => listarColecao('avisos', user.igrejaId))
       ]);
 
       setMembros(m.filter((x) => x.ativo !== false));
@@ -111,6 +119,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       await refresh();
       return;
     }
+
     const [rows, setter] = getStateSetter(collection) as unknown as [EntityMap[K][], Dispatch<SetStateAction<EntityMap[K][]>>];
     const newItem = { ...item, id: crypto.randomUUID(), igrejaId: user.igrejaId, ativo: true } as EntityMap[K];
     const next = [newItem, ...rows];
@@ -125,6 +134,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       await refresh();
       return;
     }
+
     const [rows, setter] = getStateSetter(collection) as unknown as [EntityMap[K][], Dispatch<SetStateAction<EntityMap[K][]>>];
     const next = rows.map((row) => (row.id === id ? { ...row, ...item } : row));
     setter(next);
@@ -138,6 +148,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       await refresh();
       return;
     }
+
     const [rows, setter] = getStateSetter(collection) as unknown as [EntityMap[K][], Dispatch<SetStateAction<EntityMap[K][]>>];
     const next = rows.filter((row) => row.id !== id);
     setter(next);
@@ -145,17 +156,8 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo(() => ({
-    loading,
-    membros,
-    visitantes,
-    celulas,
-    financeiro,
-    eventos,
-    avisos,
-    refresh,
-    createItem,
-    updateItem,
-    removeItem
+    loading, membros, visitantes, celulas, financeiro, eventos, avisos,
+    refresh, createItem, updateItem, removeItem
   }), [loading, membros, visitantes, celulas, financeiro, eventos, avisos]);
 
   return <ChurchDataContext.Provider value={value}>{children}</ChurchDataContext.Provider>;

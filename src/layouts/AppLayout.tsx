@@ -1,8 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Bell, CalendarDays, Church, DollarSign, Home, LogOut, Megaphone, Radio, Settings, Users, UserRoundPlus, Workflow } from 'lucide-react';
+import { Bell, CalendarDays, Church, ClipboardList, DollarSign, Home, LogOut, Megaphone, Radio, Settings, Users, UserRoundPlus, Workflow } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { accessByPath, podeAcessar } from '../config/access';
 
 const links = [
+  { to: '/quadro-avisos', label: 'Quadro de avisos', icon: ClipboardList },
   { to: '/dashboard', label: 'Dashboard', icon: Home },
   { to: '/membros', label: 'Membros', icon: Users },
   { to: '/visitantes', label: 'Visitantes', icon: UserRoundPlus },
@@ -10,13 +12,18 @@ const links = [
   { to: '/financeiro', label: 'Financeiro', icon: DollarSign },
   { to: '/eventos', label: 'Eventos', icon: CalendarDays },
   { to: '/relatorios', label: 'Relatórios', icon: Bell },
-  { to: '/avisos', label: 'Avisos', icon: Megaphone },
+  { to: '/avisos', label: 'Gerenciar avisos', icon: Megaphone },
   { to: '/radio', label: 'Rádio', icon: Radio },
   { to: '/configuracoes', label: 'Configurações', icon: Settings }
 ];
 
 export default function AppLayout() {
   const { user, signOut, demoMode } = useAuth();
+
+  const linksPermitidos = links.filter((item) => {
+    const perfis = accessByPath[item.to];
+    return perfis && podeAcessar(user?.perfil, item.to);
+  });
 
   return (
     <div className="app-shell">
@@ -30,7 +37,7 @@ export default function AppLayout() {
         </div>
 
         <nav className="sidebar-nav">
-          {links.map((item) => {
+          {linksPermitidos.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
@@ -46,7 +53,7 @@ export default function AppLayout() {
         <header className="topbar">
           <div>
             <h1>Igreja 360</h1>
-            <p>Administração, membros, células, financeiro, eventos e comunicação.</p>
+            <p>Administração, membros, células, eventos e comunicação.</p>
           </div>
           <div className="topbar-actions">
             {demoMode && <span className="demo-pill">Modo demonstração</span>}
