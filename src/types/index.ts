@@ -35,8 +35,17 @@ export type Membro = BaseEntity & {
 export type Visitante = BaseEntity & {
   nome: string;
   telefone: string;
-  origem: string;
-  primeiraVisita: string;
+  dataVisita: string;
+  primeiraVisita?: string;
+  bairro: string;
+  cidade: string;
+  dataNascimento: string;
+  faixaEtaria: string;
+  estadoCivil: string;
+  comoConheceu: string;
+  origem?: string;
+  membroOutraIgreja: 'Sim' | 'Não';
+  nomeOutraIgreja: string;
   status: 'Novo' | 'Em acompanhamento' | 'Integrado' | 'Sem retorno';
   responsavel: string;
   observacoes: string;
@@ -45,10 +54,16 @@ export type Visitante = BaseEntity & {
 export type Celula = BaseEntity & {
   nome: string;
   lider: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
   bairro: string;
+  cidade: string;
+  estado: string;
   diaSemana: string;
   horario: string;
-  membros: number;
+  membros?: number;
   status: 'Ativa' | 'Pausada' | 'Em implantação';
 };
 
@@ -70,12 +85,14 @@ export type Evento = BaseEntity & {
   publico: string;
   status: 'Planejado' | 'Aberto' | 'Realizado' | 'Cancelado';
   descricao: string;
+  enviarAoSalvar?: boolean;
 };
 
 export type Aviso = BaseEntity & {
   titulo: string;
   publico: string;
   dataPublicacao: string;
+  validadeAte: string;
   status: 'Rascunho' | 'Publicado';
   mensagem: string;
 };

@@ -10,8 +10,13 @@ export function telefoneParaWhatsapp(telefone: string) {
 
 export function abrirWhatsapp(telefone: string, mensagem: string) {
   const numero = telefoneParaWhatsapp(telefone);
-  if (!numero) throw new Error('Visitante sem telefone cadastrado.');
+  if (!numero) throw new Error('Contato sem telefone cadastrado.');
 
   const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+export function compartilharNoWhatsapp(mensagem: string) {
+  const url = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
   window.open(url, '_blank', 'noopener,noreferrer');
 }
