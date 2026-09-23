@@ -7,6 +7,17 @@ import {
   saveChurchCommunicationConfig
 } from '../services/churchCommunicationConfig';
 
+const perfis = [
+  { nome: 'Pastor', acesso: 'Acesso geral: dashboard, membros, visitantes, células, financeiro, eventos, relatórios, avisos, quadro, rádio e configurações.' },
+  { nome: 'Administrador', acesso: 'Acesso geral operacional, inclusive usuários/configurações e financeiro.' },
+  { nome: 'Secretaria', acesso: 'Membros, visitantes, células, eventos, relatórios, avisos, quadro e rádio. Sem financeiro e configurações críticas.' },
+  { nome: 'Tesoureiro', acesso: 'Dashboard, financeiro, relatórios financeiros, quadro de avisos e rádio.' },
+  { nome: 'Líder', acesso: 'Dashboard, visitantes, células, quadro e rádio. No Firebase definitivo, o acesso será limitado à célula vinculada ao líder.' },
+  { nome: 'Mídia', acesso: 'Dashboard, eventos, gerenciamento de avisos, quadro e rádio.' },
+  { nome: 'Membro', acesso: 'Quadro de avisos e rádio. Futuramente: área pessoal, célula, escalas e pedidos de oração.' },
+  { nome: 'Visitante', acesso: 'Quadro de avisos e rádio/conteúdo público. Sem acesso aos cadastros administrativos.' }
+];
+
 export default function ConfiguracoesPage() {
   const { user, demoMode } = useAuth();
   const [comunicacao, setComunicacao] = useState<ChurchCommunicationConfig>(() => getChurchCommunicationConfig());
@@ -21,7 +32,7 @@ export default function ConfiguracoesPage() {
 
   return (
     <>
-      <PageHeader title="Configurações" subtitle="Dados da igreja, usuários, perfis, comunicação e segurança." />
+      <PageHeader title="Configurações" subtitle="Dados da igreja, perfis, comunicação e segurança." />
 
       <div className="panel">
         <div className="panel-header"><div className="panel-title"><h3>Ambiente</h3><span>Informações importantes para publicação.</span></div></div>
@@ -29,7 +40,14 @@ export default function ConfiguracoesPage() {
           <div className="visual-card"><div className="visual-label">Modo</div><div className="visual-value">{demoMode ? 'Demonstração local' : 'Firebase conectado'}</div></div>
           <div className="visual-card"><div className="visual-label">Igreja ID</div><div className="visual-value">{user?.igrejaId}</div></div>
           <div className="visual-card"><div className="visual-label">Perfil</div><div className="visual-value">{user?.perfil}</div></div>
-          <div className="visual-card full"><div className="visual-label">Segurança</div><div className="visual-value">Para produção, crie usuários no Firebase Authentication, cadastre o documento em /usuarios e publique as regras do arquivo firestore.rules.</div></div>
+          <div className="visual-card full"><div className="visual-label">Segurança</div><div className="visual-value">A interface controla menus e rotas por perfil. No ambiente real, Firebase Authentication + Firestore Rules continuam sendo a proteção dos dados.</div></div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-header"><div className="panel-title"><h3>Perfis e acessos</h3><span>Matriz inicial de permissões do Igreja 360.</span></div></div>
+        <div className="role-grid">
+          {perfis.map((perfil) => <div className="role-card" key={perfil.nome}><strong>{perfil.nome}</strong><p>{perfil.acesso}</p></div>)}
         </div>
       </div>
 
