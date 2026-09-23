@@ -14,7 +14,7 @@ export default function RelatoriosPage() {
 
   const relatorio = useMemo(() => {
     if (tipo === 'membrosAtivos') return membros.filter((m) => m.status === 'Ativo').map((m) => ({ categoria: 'Membro', nome: m.nome, detalhe: m.ministerio, data: m.dataNascimento, valor: '' }));
-    if (tipo === 'visitantesPendentes') return visitantes.filter((v) => v.status !== 'Integrado').map((v) => ({ categoria: 'Visitante', nome: v.nome, detalhe: v.status, data: v.primeiraVisita, valor: '' }));
+    if (tipo === 'visitantesPendentes') return visitantes.filter((v) => v.status !== 'Integrado').map((v) => ({ categoria: 'Visitante', nome: v.nome, detalhe: v.status, data: v.dataVisita || v.primeiraVisita || '', valor: [v.bairro, v.cidade].filter(Boolean).join(' - ') }));
     if (tipo === 'financeiroEntradas') return financeiro.filter((f) => f.tipo === 'Entrada').map((f) => ({ categoria: f.categoria, nome: f.descricao, detalhe: f.formaPagamento, data: f.data, valor: moedaBR(f.valor) }));
     if (tipo === 'financeiroSaidas') return financeiro.filter((f) => f.tipo === 'Saída').map((f) => ({ categoria: f.categoria, nome: f.descricao, detalhe: f.formaPagamento, data: f.data, valor: moedaBR(f.valor) }));
     return eventos.filter((e) => e.status === 'Aberto' || e.status === 'Planejado').map((e) => ({ categoria: 'Evento', nome: e.titulo, detalhe: e.status, data: e.data, valor: e.local }));
