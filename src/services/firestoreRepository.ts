@@ -47,6 +47,17 @@ export async function listarRelatoriosCelula(igrejaId: string, celulaId?: string
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as EntityMap['relatoriosCelula']);
 }
 
+export async function listarSolicitacoesFinanceiras(user: AppUser): Promise<EntityMap['solicitacoesFinanceiras'][]> {
+  if (!db) return [];
+  const ref = collection(db, 'solicitacoesFinanceiras');
+  const privilegiado = ['pastor', 'admin', 'tesoureiro'].includes(user.perfil);
+  const q = privilegiado
+    ? query(ref, where('igrejaId', '==', user.igrejaId))
+    : query(ref, where('igrejaId', '==', user.igrejaId), where('solicitanteId', '==', user.uid));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as EntityMap['solicitacoesFinanceiras']);
+}
+
 export async function listarFinanceiro(igrejaId: string): Promise<EntityMap['financeiro'][]> {
   if (!db) return [];
   const ref = collection(db, 'financeiro');

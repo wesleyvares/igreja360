@@ -34,3 +34,16 @@ export async function salvarAnexoSolicitacao(file: File, user: AppUser): Promise
   const url = await getDownloadURL(storageRef);
   return { nome: file.name, tipo: file.type, tamanho: file.size, url, storagePath };
 }
+
+export async function salvarLogoIgreja(file: File, user: AppUser) {
+  if (!file.type.startsWith('image/')) throw new Error('A logo deve ser uma imagem.');
+  const limite = firebaseEnabled ? 2 * 1024 * 1024 : 800 * 1024;
+  if (file.size > limite) throw new Error(firebaseEnabled ? 'A logo deve ter até 2 MB.' : 'No modo demonstração, a logo deve ter até 800 KB.');
+
+  if (!firebaseEnabled || !storage) return lerDataUrl(file);
+
+  const storagePath = `igrejas/${user.igrejaId}/branding/${crypto.randomUUID()}-${nomeSeguro(file.name)}`;
+  const storageRef = ref(storage, storagePath);
+  await uploadBytes(storageRef, file, { contentType: file.type });
+  return getDownloadURL(storageRef);
+}

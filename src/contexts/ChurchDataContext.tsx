@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { firebaseEnabled } from '../firebase/config';
+import { syncChurchConfig } from '../services/reportConfig';
 import { useAuth } from './AuthContext';
 import {
   avisosMock,
@@ -32,7 +33,8 @@ import {
   listarColecao,
   listarFinanceiro,
   listarMembrosPorCelula,
-  listarRelatoriosCelula
+  listarRelatoriosCelula,
+  listarSolicitacoesFinanceiras
 } from '../services/firestoreRepository';
 
 type ChurchDataContextValue = {
@@ -86,6 +88,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
     try {
+      await syncChurchConfig(user.igrejaId);
       if (!firebaseEnabled) {
         setMembros(loadLocal('membros', membrosMock).filter((x) => x.ativo !== false));
         setVisitantes(loadLocal('visitantes', visitantesMock).filter((x) => x.ativo !== false));
@@ -115,7 +118,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
         safeLoad(() => listarColecao('visitantes', user.igrejaId)),
         celulasPromise,
         relatoriosPromise,
-        safeLoad(() => listarColecao('solicitacoesFinanceiras', user.igrejaId)),
+        safeLoad(() => listarSolicitacoesFinanceiras(user)),
         safeLoad(() => listarFinanceiro(user.igrejaId)),
         safeLoad(() => listarColecao('eventos', user.igrejaId)),
         safeLoad(() => listarColecao('avisos', user.igrejaId))
