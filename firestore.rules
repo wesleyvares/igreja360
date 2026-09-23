@@ -10,6 +10,7 @@ service cloud.firestore {
     function isAdminOrPastor() { return roleIn(['pastor', 'admin']); }
     function isTreasury() { return roleIn(['pastor', 'admin', 'tesoureiro']); }
     function leaderOwnCell(celulaId) { return roleIn(['lider']) && userData().celulaId == celulaId; }
+    function internalRequester() { return roleIn(['pastor', 'admin', 'secretaria', 'tesoureiro', 'lider', 'midia']); }
 
     match /usuarios/{uid} {
       allow read: if activeUser() && (request.auth.uid == uid || isAdminOrPastor());
@@ -19,6 +20,12 @@ service cloud.firestore {
     match /igrejas/{igrejaId} {
       allow read: if sameChurch(igrejaId);
       allow write: if sameChurch(igrejaId) && isAdminOrPastor();
+    }
+
+    match /configuracoes/{igrejaId} {
+      allow read: if sameChurch(igrejaId);
+      allow create, update: if sameChurch(igrejaId) && isAdminOrPastor();
+      allow delete: if false;
     }
 
     match /membros/{id} {
@@ -52,6 +59,39 @@ service cloud.firestore {
            request.resource.data.celulaId == resource.data.celulaId &&
            request.resource.data.igrejaId == resource.data.igrejaId));
       allow delete: if sameChurch(resource.data.igrejaId) && isAdminOrPastor();
+    }
+
+    match /solicitacoesFinanceiras/{id} {
+      allow read: if sameChurch(resource.data.igrejaId) &&
+        (roleIn(['pastor', 'admin', 'tesoureiro']) || resource.data.solicitanteId == request.auth.uid);
+
+      allow create: if sameChurch(request.resource.data.igrejaId) &&
+        internalRequester() &&
+        request.resource.data.solicitanteId == request.auth.uid &&
+        request.resource.data.status == 'Pendente aprovação';
+
+      allow update: if sameChurch(resource.data.igrejaId) && (
+        (
+          isAdminOrPastor() &&
+          resource.data.status == 'Pendente aprovação' &&
+          request.resource.data.status in ['Aprovada para financeiro', 'Reprovada'] &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'observacaoAprovacao', 'aprovadoPorId', 'aprovadoPorNome', 'aprovadoEm',
+            'atualizadoPor', 'atualizadoEm'
+          ])
+        ) ||
+        (
+          isTreasury() &&
+          resource.data.status == 'Aprovada para financeiro' &&
+          request.resource.data.status == 'Lançada no financeiro' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'processadoFinanceiroPorId', 'processadoFinanceiroPorNome', 'processadoFinanceiroEm',
+            'lancamentoFinanceiroId', 'atualizadoPor', 'atualizadoEm'
+          ])
+        )
+      );
+
+      allow delete: if false;
     }
 
     match /eventos/{id} {
