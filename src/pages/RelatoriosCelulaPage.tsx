@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { CheckCheck, Plus, Users } from 'lucide-react';
+import { CheckCheck, Plus, Printer, Users } from 'lucide-react';
 import Badge from '../components/Badge';
 import DataTable from '../components/DataTable';
 import FormField from '../components/FormField';
@@ -8,6 +8,8 @@ import Modal from '../components/Modal';
 import PageHeader from '../components/PageHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useChurchData } from '../contexts/ChurchDataContext';
+import { emitirRelatorioCelula } from '../services/printReport';
+import { getReportBrandConfig } from '../services/reportConfig';
 import { RelatorioCelula, RelatorioCelulaPresenca, RelatorioCelulaVisitante } from '../types';
 import { dataBR } from '../utils/format';
 
@@ -270,6 +272,7 @@ export default function RelatoriosCelulaPage() {
               return total ? `${Math.round((presentes / total) * 100)}%` : '-';
             }},
             { header: 'Ações', render: (r) => <div className="actions">
+              <button className="icon-btn" title="Emitir relatório / PDF" onClick={() => emitirRelatorioCelula(r, getReportBrandConfig(user?.igrejaId || 'igreja-demo'))}><Printer size={16} /></button>
               <button className="icon-btn" title="Editar relatório" onClick={() => editarRelatorio(r)}>✏️</button>
               {podeExcluir && <button className="icon-btn" title="Excluir relatório" onClick={() => removeItem('relatoriosCelula', r.id)}>🗑️</button>}
             </div> }
