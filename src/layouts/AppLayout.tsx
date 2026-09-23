@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Bell, CalendarDays, Church, ClipboardCheck, ClipboardList, DollarSign, Home, LogOut, Megaphone, Radio, Settings, Users, UserRoundPlus, Workflow } from 'lucide-react';
+import { Bell, CalendarDays, Church, ClipboardCheck, ClipboardList, DollarSign, FileClock, Home, LogOut, Megaphone, Radio, Settings, Users, UserRoundPlus, Workflow } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { accessByPath, podeAcessar } from '../config/access';
 
@@ -10,6 +10,7 @@ const links = [
   { to: '/visitantes', label: 'Visitantes', icon: UserRoundPlus },
   { to: '/celulas', label: 'Células', icon: Workflow },
   { to: '/relatorios-celula', label: 'Relatório da célula', icon: ClipboardCheck },
+  { to: '/solicitacoes', label: 'Solicitações', icon: FileClock },
   { to: '/financeiro', label: 'Financeiro', icon: DollarSign },
   { to: '/eventos', label: 'Eventos', icon: CalendarDays },
   { to: '/relatorios', label: 'Relatórios', icon: Bell },
@@ -32,11 +33,7 @@ export default function AppLayout() {
         <nav className="sidebar-nav">
           {linksPermitidos.map((item) => {
             const Icon = item.icon;
-            return (
-              <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                <Icon size={18} /><span>{item.label}</span>
-              </NavLink>
-            );
+            return <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}><Icon size={18} /><span>{item.label}</span></NavLink>;
           })}
         </nav>
       </aside>

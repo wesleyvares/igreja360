@@ -6,6 +6,7 @@ export const accessByPath: Record<string, PerfilUsuario[]> = {
   '/visitantes': ['pastor', 'admin', 'secretaria', 'lider'],
   '/celulas': ['pastor', 'admin', 'secretaria', 'lider'],
   '/relatorios-celula': ['pastor', 'admin', 'lider'],
+  '/solicitacoes': ['pastor', 'admin', 'secretaria', 'tesoureiro', 'lider', 'midia'],
   '/financeiro': ['pastor', 'admin', 'tesoureiro'],
   '/eventos': ['pastor', 'admin', 'secretaria', 'midia'],
   '/relatorios': ['pastor', 'admin', 'secretaria', 'tesoureiro'],
