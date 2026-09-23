@@ -15,6 +15,7 @@ import {
   saveReportBrandConfig
 } from '../services/reportConfig';
 import { moedaBR } from '../utils/format';
+import { salvarLogoIgreja } from '../services/fileStorage';
 
 const perfis = [
   { nome: 'Pastor', acesso: 'Acesso geral e aprovação das solicitações financeiras antes de chegarem à tesouraria.' },
@@ -26,15 +27,6 @@ const perfis = [
   { nome: 'Membro', acesso: 'Quadro de avisos e rádio.' },
   { nome: 'Visitante', acesso: 'Conteúdo permitido e rádio, sem acesso administrativo.' }
 ];
-
-function lerImagem(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error('Não foi possível ler a imagem.'));
-    reader.readAsDataURL(file);
-  });
-}
 
 export default function ConfiguracoesPage() {
   const { user, demoMode } = useAuth();
@@ -55,27 +47,25 @@ export default function ConfiguracoesPage() {
     feedback('Comunicação salva ✓');
   }
 
-  function salvarRelatorios(e: FormEvent) {
+  async function salvarRelatorios(e: FormEvent) {
     e.preventDefault();
-    saveReportBrandConfig(igrejaId, relatorios);
+    await saveReportBrandConfig(igrejaId, relatorios);
     feedback('Identidade dos relatórios salva ✓');
   }
 
-  function salvarFluxoFinanceiro(e: FormEvent) {
+  async function salvarFluxoFinanceiro(e: FormEvent) {
     e.preventDefault();
     if (financeiroCfg.valorMinimoOrcamentos < 0) return alert('O valor mínimo não pode ser negativo.');
     if (financeiroCfg.quantidadeOrcamentos < 1) return alert('A quantidade mínima de orçamentos deve ser ao menos 1.');
-    saveFinancialWorkflowConfig(igrejaId, financeiroCfg);
+    await saveFinancialWorkflowConfig(igrejaId, financeiroCfg);
     feedback('Regras financeiras salvas ✓');
   }
 
   async function carregarLogo(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return alert('Selecione uma imagem.');
-    if (file.size > 800 * 1024) return alert('No piloto, use uma logo com até 800 KB.');
+    if (!file || !user) return;
     try {
-      const logoDataUrl = await lerImagem(file);
+      const logoDataUrl = await salvarLogoIgreja(file, user);
       setRelatorios((atual) => ({ ...atual, logoDataUrl }));
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Falha ao carregar a logo.');
