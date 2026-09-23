@@ -6,7 +6,9 @@ import Modal from '../components/Modal';
 import PageHeader from '../components/PageHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useChurchData } from '../contexts/ChurchDataContext';
+import { avisosVigentes, mensagemAvisosVigentes } from '../services/communication';
 import { exportarXlsx } from '../services/exportXlsx';
+import { abrirWhatsapp } from '../services/whatsapp';
 import { Membro } from '../types';
 import { normalizarBusca } from '../utils/format';
 
@@ -16,7 +18,7 @@ const initialForm: Omit<Membro, 'id'> = {
 
 export default function MembrosPage() {
   const { user } = useAuth();
-  const { membros, celulas, createItem, updateItem, removeItem } = useChurchData();
+  const { membros, celulas, avisos, createItem, updateItem, removeItem } = useChurchData();
   const [busca, setBusca] = useState('');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Membro | null>(null);
@@ -27,6 +29,22 @@ export default function MembrosPage() {
     if (!q) return membros;
     return membros.filter((m) => [m.nome, m.telefone, m.email, m.ministerio, m.status].some((v) => normalizarBusca(v).includes(q)));
   }, [busca, membros]);
+
+  const contagemCelulas = useMemo(() => celulas
+    .map((celula) => ({
+      nome: celula.nome,
+      quantidade: membros.filter((m) => m.celulaId === celula.id && m.status === 'Ativo').length
+    }))
+    .sort((a, b) => b.quantidade - a.quantidade), [celulas, membros]);
+
+  const contagemMinisterios = useMemo(() => {
+    const mapa = new Map<string, number>();
+    membros.filter((m) => m.status === 'Ativo').forEach((m) => {
+      const nome = m.ministerio?.trim() || 'Sem ministério';
+      mapa.set(nome, (mapa.get(nome) || 0) + 1);
+    });
+    return [...mapa.entries()].map(([nome, quantidade]) => ({ nome, quantidade })).sort((a, b) => b.quantidade - a.quantidade);
+  }, [membros]);
 
   function novo() {
     setEditing(null);
@@ -44,18 +62,40 @@ export default function MembrosPage() {
   async function salvar(e: FormEvent) {
     e.preventDefault();
     if (!form.nome) return alert('Informe o nome do membro.');
+
+    const criando = !editing;
     if (editing) await updateItem('membros', editing.id, form);
     else await createItem('membros', form);
     setOpen(false);
+
+    if (criando && form.telefone && avisosVigentes(avisos).length) {
+      const enviar = window.confirm('Cadastro salvo. Existem avisos vigentes. Deseja abrir o WhatsApp com esses avisos para este membro?');
+      if (enviar) abrirWhatsapp(form.telefone, mensagemAvisosVigentes(form.nome, avisos));
+    }
   }
 
   return (
     <>
       <PageHeader
         title="Membros"
-        subtitle="Cadastro completo dos membros, ministérios, células e status de acompanhamento."
+        subtitle="Cadastro de membros com contagem automática por célula e ministério."
         actions={<><button className="btn btn-soft" onClick={() => exportarXlsx(rows, 'membros_igreja360.csv', 'Membros')}>Exportar XLSX</button><button className="btn btn-primary" onClick={novo}>+ Novo membro</button></>}
       />
+
+      <div className="summary-grid">
+        <div className="panel summary-panel">
+          <div className="panel-header"><div className="panel-title"><h3>Membros por célula</h3><span>Calculado automaticamente pelo cadastro do membro.</span></div></div>
+          <div className="summary-list">
+            {contagemCelulas.map((item) => <div className="summary-item" key={item.nome}><span>{item.nome}</span><strong>{item.quantidade}</strong></div>)}
+          </div>
+        </div>
+        <div className="panel summary-panel">
+          <div className="panel-header"><div className="panel-title"><h3>Membros por ministério</h3><span>Somente membros com status ativo.</span></div></div>
+          <div className="summary-list">
+            {contagemMinisterios.map((item) => <div className="summary-item" key={item.nome}><span>{item.nome}</span><strong>{item.quantidade}</strong></div>)}
+          </div>
+        </div>
+      </div>
 
       <div className="panel">
         <div className="panel-header">
@@ -82,11 +122,11 @@ export default function MembrosPage() {
         <form onSubmit={salvar}>
           <div className="form-grid">
             <FormField label="Nome"><input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></FormField>
-            <FormField label="Telefone"><input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></FormField>
+            <FormField label="Telefone com DDD"><input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(27) 99999-9999" /></FormField>
             <FormField label="E-mail"><input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></FormField>
             <FormField label="Tipo"><select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as Membro['tipo'] })}><option>Membro</option><option>Visitante integrado</option><option>Liderança</option></select></FormField>
             <FormField label="Status"><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Membro['status'] })}><option>Ativo</option><option>Acompanhar</option><option>Inativo</option></select></FormField>
-            <FormField label="Ministério"><input value={form.ministerio} onChange={(e) => setForm({ ...form, ministerio: e.target.value })} /></FormField>
+            <FormField label="Ministério"><input value={form.ministerio} onChange={(e) => setForm({ ...form, ministerio: e.target.value })} placeholder="Louvor, Mídia, Recepção..." /></FormField>
             <FormField label="Célula"><select value={form.celulaId} onChange={(e) => setForm({ ...form, celulaId: e.target.value })}><option value="">Sem célula</option>{celulas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}</select></FormField>
             <FormField label="Nascimento"><input type="date" value={form.dataNascimento} onChange={(e) => setForm({ ...form, dataNascimento: e.target.value })} /></FormField>
             <FormField label="Endereço"><input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} /></FormField>
