@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "membros",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "igrejaId", "order": "ASCENDING" },
+        { "fieldPath": "nome", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "financeiro",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "igrejaId", "order": "ASCENDING" },
+        { "fieldPath": "data", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

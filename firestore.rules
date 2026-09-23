@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function userDoc() { return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)); }
+    function userData() { return userDoc().data; }
+    function sameChurch(igrejaId) { return signedIn() && userDoc().exists() && userData().ativo == true && userData().igrejaId == igrejaId; }
+    function isAdminOrPastor() { return signedIn() && userDoc().exists() && userData().perfil in ['pastor', 'admin']; }
+    function isTreasurer() { return signedIn() && userDoc().exists() && userData().perfil in ['pastor', 'admin', 'tesoureiro']; }
+
+    match /usuarios/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdminOrPastor());
+      allow create, update, delete: if isAdminOrPastor();
+    }
+    match /igrejas/{igrejaId} {
+      allow read: if sameChurch(igrejaId);
+      allow write: if sameChurch(igrejaId) && isAdminOrPastor();
+    }
+    match /membros/{id} {
+      allow read: if sameChurch(resource.data.igrejaId);
+      allow create: if sameChurch(request.resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'secretaria'];
+      allow update, delete: if sameChurch(resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'secretaria'];
+    }
+    match /visitantes/{id} {
+      allow read: if sameChurch(resource.data.igrejaId);
+      allow create: if signedIn() && sameChurch(request.resource.data.igrejaId);
+      allow update, delete: if sameChurch(resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'secretaria', 'lider'];
+    }
+    match /celulas/{id} {
+      allow read: if sameChurch(resource.data.igrejaId);
+      allow create: if sameChurch(request.resource.data.igrejaId) && userData().perfil in ['pastor', 'admin'];
+      allow update, delete: if sameChurch(resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'lider'];
+    }
+    match /eventos/{id} {
+      allow read: if sameChurch(resource.data.igrejaId);
+      allow create: if sameChurch(request.resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'midia', 'secretaria'];
+      allow update: if sameChurch(resource.data.igrejaId) && sameChurch(request.resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'midia', 'secretaria'];
+      allow delete: if sameChurch(resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'midia', 'secretaria'];
+    }
+    match /avisos/{id} {
+      allow read: if sameChurch(resource.data.igrejaId);
+      allow create: if sameChurch(request.resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'midia', 'secretaria'];
+      allow update: if sameChurch(resource.data.igrejaId) && sameChurch(request.resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'midia', 'secretaria'];
+      allow delete: if sameChurch(resource.data.igrejaId) && userData().perfil in ['pastor', 'admin', 'midia', 'secretaria'];
+    }
+    match /financeiro/{id} {
+      allow read: if sameChurch(resource.data.igrejaId) && isTreasurer();
+      allow create: if sameChurch(request.resource.data.igrejaId) && isTreasurer();
+      allow update, delete: if sameChurch(resource.data.igrejaId) && isTreasurer();
+    }
+    match /auditoria/{id} {
+      allow read: if signedIn() && isAdminOrPastor();
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

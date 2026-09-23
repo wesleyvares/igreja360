@@ -1,0 +1,9 @@
+{
+  "name": "Igreja 360",
+  "short_name": "Igreja360",
+  "start_url": "/igreja360/",
+  "display": "standalone",
+  "background_color": "#eef2f7",
+  "theme_color": "#1e3a8a",
+  "description": "Sistema administrativo e app para igrejas."
+}
