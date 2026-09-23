@@ -1,9 +1,11 @@
 import { FormEvent, useMemo, useState } from 'react';
+import { MessageCircle } from 'lucide-react';
 import Badge from '../components/Badge';
 import DataTable from '../components/DataTable';
 import FormField from '../components/FormField';
 import Modal from '../components/Modal';
 import PageHeader from '../components/PageHeader';
+import WhatsAppVisitanteModal from '../components/WhatsAppVisitanteModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useChurchData } from '../contexts/ChurchDataContext';
 import { exportarXlsx } from '../services/exportXlsx';
@@ -16,10 +18,11 @@ const initialForm: Omit<Visitante, 'id'> = {
 
 export default function VisitantesPage() {
   const { user } = useAuth();
-  const { visitantes, createItem, updateItem, removeItem } = useChurchData();
+  const { visitantes, celulas, createItem, updateItem, removeItem } = useChurchData();
   const [busca, setBusca] = useState('');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Visitante | null>(null);
+  const [whatsappVisitante, setWhatsappVisitante] = useState<Visitante | null>(null);
   const [form, setForm] = useState<Omit<Visitante, 'id'>>(initialForm);
 
   const rows = useMemo(() => {
@@ -53,17 +56,18 @@ export default function VisitantesPage() {
     <>
       <PageHeader
         title="Visitantes"
-        subtitle="Controle de primeiro contato, origem, retorno e integração de visitantes."
+        subtitle="Controle de primeiro contato, acolhimento, retorno e integração de visitantes."
         actions={<><button className="btn btn-soft" onClick={() => exportarXlsx(rows, 'visitantes_igreja360.csv', 'Visitantes')}>Exportar XLSX</button><button className="btn btn-primary" onClick={novo}>+ Novo visitante</button></>}
       />
+
       <div className="panel">
         <div className="panel-header">
-          <div className="panel-title"><h3>Lista de visitantes</h3><span>{rows.length} registro(s) exibido(s)</span></div>
+          <div className="panel-title"><h3>Lista de visitantes</h3><span>{rows.length} registro(s) exibido(s) • WhatsApp disponível na coluna de ações</span></div>
           <input className="search-input" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar visitante" />
         </div>
         <DataTable<Visitante>
           rows={rows}
-          minWidth={950}
+          minWidth={1050}
           columns={[
             { header: 'Nome', render: (r) => <strong>{r.nome}</strong> },
             { header: 'Telefone', render: (r) => r.telefone || '-' },
@@ -71,16 +75,23 @@ export default function VisitantesPage() {
             { header: 'Primeira visita', render: (r) => dataBR(r.primeiraVisita) },
             { header: 'Status', render: (r) => <Badge color={r.status === 'Integrado' ? 'green' : r.status === 'Sem retorno' ? 'red' : 'orange'}>{r.status}</Badge> },
             { header: 'Responsável', render: (r) => r.responsavel || '-' },
-            { header: 'Ações', render: (r) => <div className="actions"><button className="icon-btn" onClick={() => editar(r)}>✏️</button><button className="icon-btn" onClick={() => removeItem('visitantes', r.id)}>🗑️</button></div> }
+            { header: 'Ações', render: (r) => (
+              <div className="actions">
+                <button className="icon-btn whatsapp-icon" title="Enviar WhatsApp" aria-label={`Enviar WhatsApp para ${r.nome}`} onClick={() => setWhatsappVisitante(r)} disabled={!r.telefone}><MessageCircle size={17} /></button>
+                <button className="icon-btn" title="Editar visitante" onClick={() => editar(r)}>✏️</button>
+                <button className="icon-btn" title="Excluir visitante" onClick={() => removeItem('visitantes', r.id)}>🗑️</button>
+              </div>
+            )}
           ]}
         />
       </div>
+
       <Modal title={editing ? 'Editar visitante' : 'Novo visitante'} open={open} onClose={() => setOpen(false)}>
         <form onSubmit={salvar}>
           <div className="form-grid">
             <FormField label="Nome"><input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></FormField>
-            <FormField label="Telefone"><input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></FormField>
-            <FormField label="Origem"><input value={form.origem} onChange={(e) => setForm({ ...form, origem: e.target.value })} /></FormField>
+            <FormField label="Telefone"><input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(27) 99999-9999" /></FormField>
+            <FormField label="Origem"><input value={form.origem} onChange={(e) => setForm({ ...form, origem: e.target.value })} placeholder="Culto, célula, Instagram, convite..." /></FormField>
             <FormField label="Primeira visita"><input type="date" value={form.primeiraVisita} onChange={(e) => setForm({ ...form, primeiraVisita: e.target.value })} /></FormField>
             <FormField label="Status"><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Visitante['status'] })}><option>Novo</option><option>Em acompanhamento</option><option>Integrado</option><option>Sem retorno</option></select></FormField>
             <FormField label="Responsável"><input value={form.responsavel} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} /></FormField>
@@ -89,6 +100,13 @@ export default function VisitantesPage() {
           <div className="modal-actions-right"><button className="btn btn-soft" type="button" onClick={() => setOpen(false)}>Cancelar</button><button className="btn btn-success" type="submit">Salvar</button></div>
         </form>
       </Modal>
+
+      <WhatsAppVisitanteModal
+        open={Boolean(whatsappVisitante)}
+        visitante={whatsappVisitante}
+        celulas={celulas}
+        onClose={() => setWhatsappVisitante(null)}
+      />
     </>
   );
 }
