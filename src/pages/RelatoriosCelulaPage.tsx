@@ -16,10 +16,41 @@ type FormState = {
   dataReuniao: string;
   presencas: RelatorioCelulaPresenca[];
   visitantes: RelatorioCelulaVisitante[];
+  quemTocouLouvor: string;
+  quemConduziuLouvores: string;
+  louvoresMinistrados: string;
+  quemMinistrouQuebraGelo: string;
+  quemMinistrouPalavra: string;
+  quemMinistrouCadeiraVazia: string;
+  houvePedidoOracao: boolean;
+  pedidoOracaoDescricao: string;
+  houveTestemunho: boolean;
+  testemunhoDescricao: string;
+  nivelParticipacao: 1 | 2 | 3 | 4 | 5;
 };
 
 function hojeISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function formInicial(celulaId = '', presencas: RelatorioCelulaPresenca[] = []): FormState {
+  return {
+    celulaId,
+    dataReuniao: hojeISO(),
+    presencas,
+    visitantes: [],
+    quemTocouLouvor: '',
+    quemConduziuLouvores: '',
+    louvoresMinistrados: '',
+    quemMinistrouQuebraGelo: '',
+    quemMinistrouPalavra: '',
+    quemMinistrouCadeiraVazia: '',
+    houvePedidoOracao: false,
+    pedidoOracaoDescricao: '',
+    houveTestemunho: false,
+    testemunhoDescricao: '',
+    nivelParticipacao: 3
+  };
 }
 
 export default function RelatoriosCelulaPage() {
@@ -28,7 +59,7 @@ export default function RelatoriosCelulaPage() {
   const [filtroCelula, setFiltroCelula] = useState(user?.perfil === 'lider' ? user.celulaId || '' : '');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<RelatorioCelula | null>(null);
-  const [form, setForm] = useState<FormState>({ celulaId: '', dataReuniao: hojeISO(), presencas: [], visitantes: [] });
+  const [form, setForm] = useState<FormState>(formInicial());
 
   const celulasPermitidas = useMemo(() => {
     if (user?.perfil === 'lider') return celulas.filter((c) => c.id === user.celulaId);
@@ -60,12 +91,7 @@ export default function RelatoriosCelulaPage() {
       : filtroCelula || celulasPermitidas[0]?.id || '';
 
     setEditing(null);
-    setForm({
-      celulaId,
-      dataReuniao: hojeISO(),
-      presencas: montarPresencas(celulaId),
-      visitantes: []
-    });
+    setForm(formInicial(celulaId, montarPresencas(celulaId)));
     setOpen(true);
   }
 
@@ -74,8 +100,19 @@ export default function RelatoriosCelulaPage() {
     setForm({
       celulaId: relatorio.celulaId,
       dataReuniao: relatorio.dataReuniao,
-      presencas: relatorio.presencas,
-      visitantes: relatorio.visitantes
+      presencas: relatorio.presencas || [],
+      visitantes: relatorio.visitantes || [],
+      quemTocouLouvor: relatorio.quemTocouLouvor || '',
+      quemConduziuLouvores: relatorio.quemConduziuLouvores || '',
+      louvoresMinistrados: relatorio.louvoresMinistrados || '',
+      quemMinistrouQuebraGelo: relatorio.quemMinistrouQuebraGelo || '',
+      quemMinistrouPalavra: relatorio.quemMinistrouPalavra || '',
+      quemMinistrouCadeiraVazia: relatorio.quemMinistrouCadeiraVazia || '',
+      houvePedidoOracao: Boolean(relatorio.houvePedidoOracao),
+      pedidoOracaoDescricao: relatorio.pedidoOracaoDescricao || '',
+      houveTestemunho: Boolean(relatorio.houveTestemunho),
+      testemunhoDescricao: relatorio.testemunhoDescricao || '',
+      nivelParticipacao: relatorio.nivelParticipacao || 3
     });
     setOpen(true);
   }
@@ -128,6 +165,14 @@ export default function RelatoriosCelulaPage() {
     if (!user) return;
     if (!form.celulaId) return alert('Selecione a célula.');
     if (!form.dataReuniao) return alert('Informe a data da reunião.');
+    if (!form.quemTocouLouvor.trim()) return alert('Informe quem tocou no louvor.');
+    if (!form.quemConduziuLouvores.trim()) return alert('Informe quem conduziu os louvores.');
+    if (!form.louvoresMinistrados.trim()) return alert('Informe quais louvores foram ministrados.');
+    if (!form.quemMinistrouQuebraGelo.trim()) return alert('Informe quem ministrou o quebra-gelo.');
+    if (!form.quemMinistrouPalavra.trim()) return alert('Informe quem ministrou a Palavra.');
+    if (!form.quemMinistrouCadeiraVazia.trim()) return alert('Informe quem ministrou a Cadeira Vazia.');
+    if (form.houvePedidoOracao && !form.pedidoOracaoDescricao.trim()) return alert('Descreva brevemente o pedido de oração e quem pediu.');
+    if (form.houveTestemunho && !form.testemunhoDescricao.trim()) return alert('Descreva brevemente o testemunho e quem compartilhou.');
 
     const celula = celulas.find((c) => c.id === form.celulaId);
     if (!celula) return alert('Célula não encontrada.');
@@ -143,6 +188,22 @@ export default function RelatoriosCelulaPage() {
       dataReuniao: form.dataReuniao,
       presencas: form.presencas,
       visitantes: visitantesValidos,
+
+      quemTocouLouvor: form.quemTocouLouvor.trim(),
+      quemConduziuLouvores: form.quemConduziuLouvores.trim(),
+      louvoresMinistrados: form.louvoresMinistrados.trim(),
+      quemMinistrouQuebraGelo: form.quemMinistrouQuebraGelo.trim(),
+      quemMinistrouPalavra: form.quemMinistrouPalavra.trim(),
+      quemMinistrouCadeiraVazia: form.quemMinistrouCadeiraVazia.trim(),
+
+      houvePedidoOracao: form.houvePedidoOracao,
+      pedidoOracaoDescricao: form.houvePedidoOracao ? form.pedidoOracaoDescricao.trim() : '',
+      houveTestemunho: form.houveTestemunho,
+      testemunhoDescricao: form.houveTestemunho ? form.testemunhoDescricao.trim() : '',
+
+      preenchidoPorId: editing?.preenchidoPorId || user.uid,
+      preenchidoPorNome: editing?.preenchidoPorNome || user.nome,
+      nivelParticipacao: form.nivelParticipacao,
       ativo: true
     };
 
@@ -159,7 +220,7 @@ export default function RelatoriosCelulaPage() {
     <>
       <PageHeader
         title="Relatório da Célula"
-        subtitle="Registre cada reunião, presença dos membros e visitantes. O histórico alimenta a frequência da célula."
+        subtitle="Registre a reunião completa: equipe, louvores, Palavra, participação, presença, visitantes, oração e testemunhos."
         actions={<button className="btn btn-primary" onClick={novaReuniao}><Plus size={16} /> Registrar reunião</button>}
       />
 
@@ -191,7 +252,7 @@ export default function RelatoriosCelulaPage() {
         </div>
         <DataTable<RelatorioCelula>
           rows={relatoriosFiltrados}
-          minWidth={1000}
+          minWidth={1180}
           columns={[
             { header: 'Data', render: (r) => <strong>{dataBR(r.dataReuniao)}</strong> },
             { header: 'Célula', render: (r) => r.celulaNome },
@@ -199,6 +260,10 @@ export default function RelatoriosCelulaPage() {
             { header: 'Presentes', render: (r) => <Badge color="green">{r.presencas.filter((p) => p.presente).length}</Badge> },
             { header: 'Ausentes', render: (r) => <Badge color="orange">{r.presencas.filter((p) => !p.presente).length}</Badge> },
             { header: 'Visitantes', render: (r) => <Badge color="blue">{r.visitantes.length}</Badge> },
+            { header: 'Participação', render: (r) => <Badge color={r.nivelParticipacao >= 4 ? 'green' : r.nivelParticipacao <= 2 ? 'orange' : 'blue'}>{r.nivelParticipacao || '-'} / 5</Badge> },
+            { header: 'Oração', render: (r) => r.houvePedidoOracao ? <Badge color="purple">Sim</Badge> : <Badge color="gray">Não</Badge> },
+            { header: 'Testemunho', render: (r) => r.houveTestemunho ? <Badge color="teal">Sim</Badge> : <Badge color="gray">Não</Badge> },
+            { header: 'Preenchido por', render: (r) => r.preenchidoPorNome || '-' },
             { header: 'Frequência', render: (r) => {
               const total = r.presencas.length;
               const presentes = r.presencas.filter((p) => p.presente).length;
@@ -224,7 +289,66 @@ export default function RelatoriosCelulaPage() {
             <FormField label="Data da reunião">
               <input type="date" value={form.dataReuniao} onChange={(e) => setForm({ ...form, dataReuniao: e.target.value })} />
             </FormField>
+            <FormField label="Quem preencheu o relatório?">
+              <input value={editing?.preenchidoPorNome || user?.nome || ''} readOnly />
+            </FormField>
           </div>
+
+          <section className="cell-report-section">
+            <div className="cell-report-section-title">
+              <h3>Louvor e condução</h3>
+              <p>Informe quem serviu e quais louvores foram ministrados na reunião.</p>
+            </div>
+            <div className="form-grid">
+              <FormField label="Quem tocou no louvor?">
+                <input value={form.quemTocouLouvor} onChange={(e) => setForm({ ...form, quemTocouLouvor: e.target.value })} placeholder="Nome(s)" />
+              </FormField>
+              <FormField label="Quem conduziu os louvores?">
+                <input value={form.quemConduziuLouvores} onChange={(e) => setForm({ ...form, quemConduziuLouvores: e.target.value })} placeholder="Nome" />
+              </FormField>
+              <FormField label="Quais louvores foram ministrados?" full>
+                <textarea value={form.louvoresMinistrados} onChange={(e) => setForm({ ...form, louvoresMinistrados: e.target.value })} placeholder={"Ex.: Louvor 1\nLouvor 2\nLouvor 3"} />
+              </FormField>
+            </div>
+          </section>
+
+          <section className="cell-report-section">
+            <div className="cell-report-section-title">
+              <h3>Ministrações</h3>
+              <p>Registre os responsáveis por cada momento da célula.</p>
+            </div>
+            <div className="form-grid">
+              <FormField label="Quem ministrou quebra-gelo?">
+                <input value={form.quemMinistrouQuebraGelo} onChange={(e) => setForm({ ...form, quemMinistrouQuebraGelo: e.target.value })} />
+              </FormField>
+              <FormField label="Quem ministrou a Palavra?">
+                <input value={form.quemMinistrouPalavra} onChange={(e) => setForm({ ...form, quemMinistrouPalavra: e.target.value })} />
+              </FormField>
+              <FormField label="Quem ministrou a Cadeira Vazia?">
+                <input value={form.quemMinistrouCadeiraVazia} onChange={(e) => setForm({ ...form, quemMinistrouCadeiraVazia: e.target.value })} />
+              </FormField>
+            </div>
+          </section>
+
+          <section className="cell-report-section">
+            <div className="cell-report-section-title">
+              <h3>Participação dos membros</h3>
+              <p>1 = muito baixo • 5 = muito alto.</p>
+            </div>
+            <div className="participation-scale">
+              {[1, 2, 3, 4, 5].map((nivel) => (
+                <button
+                  key={nivel}
+                  type="button"
+                  className={`participation-option ${form.nivelParticipacao === nivel ? 'selected' : ''}`}
+                  onClick={() => setForm({ ...form, nivelParticipacao: nivel as 1 | 2 | 3 | 4 | 5 })}
+                >
+                  <strong>{nivel}</strong>
+                  <span>{nivel === 1 ? 'Muito baixo' : nivel === 2 ? 'Baixo' : nivel === 3 ? 'Médio' : nivel === 4 ? 'Alto' : 'Muito alto'}</span>
+                </button>
+              ))}
+            </div>
+          </section>
 
           <div className="attendance-section">
             <div className="attendance-header">
@@ -271,10 +395,46 @@ export default function RelatoriosCelulaPage() {
             </div>
           </div>
 
+          <section className="cell-report-section">
+            <div className="cell-report-section-title">
+              <h3>Oração e testemunhos</h3>
+              <p>Registre somente o necessário para acompanhamento pastoral.</p>
+            </div>
+
+            <div className="yes-no-grid">
+              <div className="yes-no-card">
+                <strong>Houve algum pedido de ORAÇÃO compartilhado na célula?</strong>
+                <div className="segmented-control">
+                  <button type="button" className={!form.houvePedidoOracao ? 'selected' : ''} onClick={() => setForm({ ...form, houvePedidoOracao: false, pedidoOracaoDescricao: '' })}>Não</button>
+                  <button type="button" className={form.houvePedidoOracao ? 'selected' : ''} onClick={() => setForm({ ...form, houvePedidoOracao: true })}>Sim</button>
+                </div>
+                {form.houvePedidoOracao && (
+                  <label>Descreva brevemente e informe quem pediu
+                    <textarea value={form.pedidoOracaoDescricao} onChange={(e) => setForm({ ...form, pedidoOracaoDescricao: e.target.value })} placeholder="Descrição breve do pedido e nome da pessoa" />
+                  </label>
+                )}
+              </div>
+
+              <div className="yes-no-card">
+                <strong>Houve algum testemunho compartilhado na célula?</strong>
+                <div className="segmented-control">
+                  <button type="button" className={!form.houveTestemunho ? 'selected' : ''} onClick={() => setForm({ ...form, houveTestemunho: false, testemunhoDescricao: '' })}>Não</button>
+                  <button type="button" className={form.houveTestemunho ? 'selected' : ''} onClick={() => setForm({ ...form, houveTestemunho: true })}>Sim</button>
+                </div>
+                {form.houveTestemunho && (
+                  <label>Descreva brevemente e informe quem compartilhou
+                    <textarea value={form.testemunhoDescricao} onChange={(e) => setForm({ ...form, testemunhoDescricao: e.target.value })} placeholder="Descrição breve do testemunho e nome da pessoa" />
+                  </label>
+                )}
+              </div>
+            </div>
+          </section>
+
           <div className="report-form-summary">
             <span><strong>{form.presencas.filter((p) => p.presente).length}</strong> presentes</span>
             <span><strong>{form.presencas.filter((p) => !p.presente).length}</strong> ausentes</span>
             <span><strong>{form.visitantes.filter((v) => v.nome.trim()).length}</strong> visitantes</span>
+            <span><strong>{form.nivelParticipacao}/5</strong> participação</span>
           </div>
 
           <div className="modal-actions-right">

@@ -87,6 +87,22 @@ export type RelatorioCelula = BaseEntity & {
   dataReuniao: string;
   presencas: RelatorioCelulaPresenca[];
   visitantes: RelatorioCelulaVisitante[];
+
+  quemTocouLouvor: string;
+  quemConduziuLouvores: string;
+  louvoresMinistrados: string;
+  quemMinistrouQuebraGelo: string;
+  quemMinistrouPalavra: string;
+  quemMinistrouCadeiraVazia: string;
+
+  houvePedidoOracao: boolean;
+  pedidoOracaoDescricao: string;
+  houveTestemunho: boolean;
+  testemunhoDescricao: string;
+
+  preenchidoPorId: string;
+  preenchidoPorNome: string;
+  nivelParticipacao: 1 | 2 | 3 | 4 | 5;
 };
 
 export type LancamentoFinanceiro = BaseEntity & {
