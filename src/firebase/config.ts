@@ -1,6 +1,7 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -26,4 +27,5 @@ export const app = firebaseEnabled
 
 export const auth = app ? getAuth(app) : undefined;
 export const db = app ? getFirestore(app) : undefined;
+export const storage = app && firebaseConfig.storageBucket ? getStorage(app) : undefined;
 export const defaultIgrejaId = import.meta.env.VITE_DEFAULT_IGREJA_ID || 'igreja-demo';

@@ -2,8 +2,28 @@ import { createContext, ReactNode, useContext, useEffect, useMemo, useState } fr
 import type { Dispatch, SetStateAction } from 'react';
 import { firebaseEnabled } from '../firebase/config';
 import { useAuth } from './AuthContext';
-import { avisosMock, celulasMock, eventosMock, financeiroMock, membrosMock, relatoriosCelulaMock, visitantesMock } from '../data/mockData';
-import { Aviso, Celula, CollectionName, EntityMap, Evento, LancamentoFinanceiro, Membro, RelatorioCelula, Visitante } from '../types';
+import {
+  avisosMock,
+  celulasMock,
+  eventosMock,
+  financeiroMock,
+  membrosMock,
+  relatoriosCelulaMock,
+  solicitacoesFinanceirasMock,
+  visitantesMock
+} from '../data/mockData';
+import {
+  Aviso,
+  Celula,
+  CollectionName,
+  EntityMap,
+  Evento,
+  LancamentoFinanceiro,
+  Membro,
+  RelatorioCelula,
+  SolicitacaoFinanceira,
+  Visitante
+} from '../types';
 import {
   atualizarDocumento,
   buscarCelulaPorId,
@@ -21,11 +41,12 @@ type ChurchDataContextValue = {
   visitantes: Visitante[];
   celulas: Celula[];
   relatoriosCelula: RelatorioCelula[];
+  solicitacoesFinanceiras: SolicitacaoFinanceira[];
   financeiro: LancamentoFinanceiro[];
   eventos: Evento[];
   avisos: Aviso[];
   refresh: () => Promise<void>;
-  createItem: <K extends CollectionName>(collection: K, item: Omit<EntityMap[K], 'id'>) => Promise<void>;
+  createItem: <K extends CollectionName>(collection: K, item: Omit<EntityMap[K], 'id'>) => Promise<string | void>;
   updateItem: <K extends CollectionName>(collection: K, id: string, item: Partial<EntityMap[K]>) => Promise<void>;
   removeItem: <K extends CollectionName>(collection: K, id: string) => Promise<void>;
 };
@@ -55,6 +76,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
   const [visitantes, setVisitantes] = useState<Visitante[]>([]);
   const [celulas, setCelulas] = useState<Celula[]>([]);
   const [relatoriosCelula, setRelatoriosCelula] = useState<RelatorioCelula[]>([]);
+  const [solicitacoesFinanceiras, setSolicitacoesFinanceiras] = useState<SolicitacaoFinanceira[]>([]);
   const [financeiro, setFinanceiro] = useState<LancamentoFinanceiro[]>([]);
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [avisos, setAvisos] = useState<Aviso[]>([]);
@@ -69,6 +91,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
         setVisitantes(loadLocal('visitantes', visitantesMock).filter((x) => x.ativo !== false));
         setCelulas(loadLocal('celulas', celulasMock).filter((x) => x.ativo !== false));
         setRelatoriosCelula(loadLocal('relatoriosCelula', relatoriosCelulaMock).filter((x) => x.ativo !== false));
+        setSolicitacoesFinanceiras(loadLocal('solicitacoesFinanceiras', solicitacoesFinanceirasMock).filter((x) => x.ativo !== false));
         setFinanceiro(loadLocal('financeiro', financeiroMock).filter((x) => x.ativo !== false));
         setEventos(loadLocal('eventos', eventosMock).filter((x) => x.ativo !== false));
         setAvisos(loadLocal('avisos', avisosMock).filter((x) => x.ativo !== false));
@@ -87,11 +110,12 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
         ? (user.celulaId ? safeLoad(() => listarRelatoriosCelula(user.igrejaId, user.celulaId)) : Promise.resolve([]))
         : safeLoad(() => listarRelatoriosCelula(user.igrejaId));
 
-      const [m, v, c, rc, f, e, a] = await Promise.all([
+      const [m, v, c, rc, sf, f, e, a] = await Promise.all([
         membrosPromise,
         safeLoad(() => listarColecao('visitantes', user.igrejaId)),
         celulasPromise,
         relatoriosPromise,
+        safeLoad(() => listarColecao('solicitacoesFinanceiras', user.igrejaId)),
         safeLoad(() => listarFinanceiro(user.igrejaId)),
         safeLoad(() => listarColecao('eventos', user.igrejaId)),
         safeLoad(() => listarColecao('avisos', user.igrejaId))
@@ -101,6 +125,7 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       setVisitantes(v.filter((x) => x.ativo !== false));
       setCelulas(c.filter((x) => x.ativo !== false));
       setRelatoriosCelula(rc.filter((x) => x.ativo !== false));
+      setSolicitacoesFinanceiras(sf.filter((x) => x.ativo !== false));
       setFinanceiro(f.filter((x) => x.ativo !== false));
       setEventos(e.filter((x) => x.ativo !== false));
       setAvisos(a.filter((x) => x.ativo !== false));
@@ -120,24 +145,27 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
       visitantes: [visitantes, setVisitantes],
       celulas: [celulas, setCelulas],
       relatoriosCelula: [relatoriosCelula, setRelatoriosCelula],
+      solicitacoesFinanceiras: [solicitacoesFinanceiras, setSolicitacoesFinanceiras],
       financeiro: [financeiro, setFinanceiro],
       eventos: [eventos, setEventos],
       avisos: [avisos, setAvisos]
     }[collection] as [EntityMap[typeof collection][], Dispatch<SetStateAction<EntityMap[typeof collection][]>>];
   }
 
-  async function createItem<K extends CollectionName>(collection: K, item: Omit<EntityMap[K], 'id'>) {
+  async function createItem<K extends CollectionName>(collection: K, item: Omit<EntityMap[K], 'id'>): Promise<string | void> {
     if (!user) throw new Error('Usuário não autenticado.');
     if (firebaseEnabled) {
-      await criarDocumento(collection, item, user);
+      const id = await criarDocumento(collection, item, user);
       await refresh();
-      return;
+      return id;
     }
     const [rows, setter] = getStateSetter(collection) as unknown as [EntityMap[K][], Dispatch<SetStateAction<EntityMap[K][]>>];
-    const newItem = { ...item, id: crypto.randomUUID(), igrejaId: user.igrejaId, ativo: true } as EntityMap[K];
+    const id = crypto.randomUUID();
+    const newItem = { ...item, id, igrejaId: user.igrejaId, ativo: true } as EntityMap[K];
     const next = [newItem, ...rows];
     setter(next);
     saveLocal(collection, next);
+    return id;
   }
 
   async function updateItem<K extends CollectionName>(collection: K, id: string, item: Partial<EntityMap[K]>) {
@@ -167,9 +195,20 @@ export function ChurchDataProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo(() => ({
-    loading, membros, visitantes, celulas, relatoriosCelula, financeiro, eventos, avisos,
-    refresh, createItem, updateItem, removeItem
-  }), [loading, membros, visitantes, celulas, relatoriosCelula, financeiro, eventos, avisos]);
+    loading,
+    membros,
+    visitantes,
+    celulas,
+    relatoriosCelula,
+    solicitacoesFinanceiras,
+    financeiro,
+    eventos,
+    avisos,
+    refresh,
+    createItem,
+    updateItem,
+    removeItem
+  }), [loading, membros, visitantes, celulas, relatoriosCelula, solicitacoesFinanceiras, financeiro, eventos, avisos]);
 
   return <ChurchDataContext.Provider value={value}>{children}</ChurchDataContext.Provider>;
 }
