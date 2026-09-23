@@ -59,6 +59,19 @@ export const relatoriosCelulaMock: RelatorioCelula[] = [
       { membroId: 'm3', nome: 'Juliana Santos', presente: true }
     ],
     visitantes: [{ nome: 'Carlos Souza', telefone: '(27) 99999-3001' }],
+    quemTocouLouvor: 'Ana Cristina',
+    quemConduziuLouvores: 'Ana Cristina',
+    louvoresMinistrados: 'Tudo é Teu; Bondade de Deus; Santo Pra Sempre',
+    quemMinistrouQuebraGelo: 'Juliana Santos',
+    quemMinistrouPalavra: 'Ana Cristina',
+    quemMinistrouCadeiraVazia: 'Juliana Santos',
+    houvePedidoOracao: true,
+    pedidoOracaoDescricao: 'Pedido por uma oportunidade de trabalho compartilhado por Carlos Souza.',
+    houveTestemunho: true,
+    testemunhoDescricao: 'Juliana compartilhou um testemunho de resposta de oração.',
+    preenchidoPorId: 'demo-user',
+    preenchidoPorNome: 'Administrador Demonstração',
+    nivelParticipacao: 5,
     ativo: true
   }
 ];
