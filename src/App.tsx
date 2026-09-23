@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage';
 import MembrosPage from './pages/MembrosPage';
 import VisitantesPage from './pages/VisitantesPage';
 import CelulasPage from './pages/CelulasPage';
+import RelatoriosCelulaPage from './pages/RelatoriosCelulaPage';
 import FinanceiroPage from './pages/FinanceiroPage';
 import EventosPage from './pages/EventosPage';
 import RelatoriosPage from './pages/RelatoriosPage';
@@ -24,11 +25,11 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route index element={<Navigate to="/quadro-avisos" replace />} />
-
           <Route element={<RoleRoute allowed={accessByPath['/dashboard']} />}><Route path="/dashboard" element={<DashboardPage />} /></Route>
           <Route element={<RoleRoute allowed={accessByPath['/membros']} />}><Route path="/membros" element={<MembrosPage />} /></Route>
           <Route element={<RoleRoute allowed={accessByPath['/visitantes']} />}><Route path="/visitantes" element={<VisitantesPage />} /></Route>
           <Route element={<RoleRoute allowed={accessByPath['/celulas']} />}><Route path="/celulas" element={<CelulasPage />} /></Route>
+          <Route element={<RoleRoute allowed={accessByPath['/relatorios-celula']} />}><Route path="/relatorios-celula" element={<RelatoriosCelulaPage />} /></Route>
           <Route element={<RoleRoute allowed={accessByPath['/financeiro']} />}><Route path="/financeiro" element={<FinanceiroPage />} /></Route>
           <Route element={<RoleRoute allowed={accessByPath['/eventos']} />}><Route path="/eventos" element={<EventosPage />} /></Route>
           <Route element={<RoleRoute allowed={accessByPath['/relatorios']} />}><Route path="/relatorios" element={<RelatoriosPage />} /></Route>

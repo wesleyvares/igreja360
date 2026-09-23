@@ -41,6 +41,19 @@ service cloud.firestore {
       allow update, delete: if sameChurch(resource.data.igrejaId) && roleIn(['pastor', 'admin', 'secretaria']);
     }
 
+    match /relatoriosCelula/{id} {
+      allow read: if sameChurch(resource.data.igrejaId) &&
+        (isAdminOrPastor() || leaderOwnCell(resource.data.celulaId));
+      allow create: if sameChurch(request.resource.data.igrejaId) &&
+        (isAdminOrPastor() || leaderOwnCell(request.resource.data.celulaId));
+      allow update: if sameChurch(resource.data.igrejaId) &&
+        (isAdminOrPastor() ||
+          (leaderOwnCell(resource.data.celulaId) &&
+           request.resource.data.celulaId == resource.data.celulaId &&
+           request.resource.data.igrejaId == resource.data.igrejaId));
+      allow delete: if sameChurch(resource.data.igrejaId) && isAdminOrPastor();
+    }
+
     match /eventos/{id} {
       allow read: if sameChurch(resource.data.igrejaId);
       allow create: if sameChurch(request.resource.data.igrejaId) && roleIn(['pastor', 'admin', 'midia', 'secretaria']);
@@ -65,8 +78,6 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    match /{document=**} {
-      allow read, write: if false;
-    }
+    match /{document=**} { allow read, write: if false; }
   }
 }

@@ -17,6 +17,23 @@
       ]
     },
     {
+      "collectionGroup": "relatoriosCelula",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "igrejaId", "order": "ASCENDING" },
+        { "fieldPath": "dataReuniao", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "relatoriosCelula",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "igrejaId", "order": "ASCENDING" },
+        { "fieldPath": "celulaId", "order": "ASCENDING" },
+        { "fieldPath": "dataReuniao", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "financeiro",
       "queryScope": "COLLECTION",
       "fields": [
