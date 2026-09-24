@@ -9,6 +9,16 @@ import { useChurchData } from '../contexts/ChurchDataContext';
 import { Celula } from '../types';
 import { normalizarBusca } from '../utils/format';
 
+function formatarCep(valor: string) {
+  const digitos = valor.replace(/\D/g, '').slice(0, 8);
+  return digitos.length > 5 ? `${digitos.slice(0, 5)}-${digitos.slice(5)}` : digitos;
+}
+
+function cepValido(valor: string) {
+  const digitos = valor.replace(/\D/g, '');
+  return /^\d{8}$/.test(digitos) && !/^(\d)\1{7}$/.test(digitos);
+}
+
 const initialForm: Omit<Celula, 'id'> = {
   igrejaId: '', nome: '', lider: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: 'ES',
   diaSemana: '', horario: '', status: 'Ativa', ativo: true
@@ -47,6 +57,7 @@ export default function CelulasPage() {
   async function salvar(e: FormEvent) {
     e.preventDefault();
     if (!form.nome) return alert('Informe o nome da célula.');
+    if (form.cep && !cepValido(form.cep)) return alert('Informe um CEP válido com 8 dígitos. Ex.: 29200-000.');
     if (editing) await updateItem('celulas', editing.id, form);
     else await createItem('celulas', form);
     setOpen(false);
@@ -73,7 +84,7 @@ export default function CelulasPage() {
         <form onSubmit={salvar}><div className="form-grid">
           <FormField label="Nome"><input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></FormField>
           <FormField label="Líder"><input value={form.lider} onChange={(e) => setForm({ ...form, lider: e.target.value })} /></FormField>
-          <FormField label="CEP"><input value={form.cep} onChange={(e) => setForm({ ...form, cep: e.target.value })} placeholder="00000-000" /></FormField>
+          <FormField label="CEP"><input value={form.cep} onChange={(e) => setForm({ ...form, cep: formatarCep(e.target.value) })} placeholder="00000-000" inputMode="numeric" maxLength={9} /></FormField>
           <FormField label="Logradouro"><input value={form.logradouro} onChange={(e) => setForm({ ...form, logradouro: e.target.value })} placeholder="Rua, avenida..." /></FormField>
           <FormField label="Número"><input value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} /></FormField>
           <FormField label="Complemento"><input value={form.complemento} onChange={(e) => setForm({ ...form, complemento: e.target.value })} /></FormField>
