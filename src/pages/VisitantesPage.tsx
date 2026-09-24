@@ -18,6 +18,24 @@ const faixasEtarias = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-6
 const estadosCivis = ['Solteiro(a)', 'Casado(a)', 'União estável', 'Divorciado(a)', 'Viúvo(a)', 'Outro'];
 const comoConheceuOpcoes = ['Convite de amigo/familiar', 'Instagram', 'Evangelismo', 'Célula', 'Evento', 'Google/Internet', 'Passando em frente', 'Outro'];
 
+function formatarTelefone(valor: string) {
+  const digitos = valor.replace(/\D/g, '').slice(0, 11);
+  if (digitos.length <= 2) return digitos;
+  if (digitos.length <= 6) return `(${digitos.slice(0, 2)}) ${digitos.slice(2)}`;
+  if (digitos.length <= 10) return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`;
+  return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
+}
+
+function telefoneValido(valor: string) {
+  const digitos = valor.replace(/\D/g, '');
+  if (!/^\d{10,11}$/.test(digitos)) return false;
+  if (/^(\d)\1+$/.test(digitos)) return false;
+  const ddd = Number(digitos.slice(0, 2));
+  if (ddd < 11 || ddd > 99) return false;
+  if (digitos.length === 11 && digitos[2] !== '9') return false;
+  return true;
+}
+
 const initialForm: Omit<Visitante, 'id'> = {
   igrejaId: '', nome: '', telefone: '', dataVisita: '', bairro: '', cidade: '', dataNascimento: '', faixaEtaria: '',
   estadoCivil: '', comoConheceu: '', membroOutraIgreja: 'Não', nomeOutraIgreja: '',
@@ -66,6 +84,7 @@ export default function VisitantesPage() {
     if (!form.nome) return alert('Informe o nome do visitante.');
     if (!form.dataVisita) return alert('Informe a data da visita.');
     if (!form.telefone) return alert('Informe o telefone com DDD.');
+    if (!telefoneValido(form.telefone)) return alert('Informe um telefone válido com DDD. Ex.: (27) 99999-9999.');
     if (form.membroOutraIgreja === 'Sim' && !form.nomeOutraIgreja.trim()) return alert('Informe o nome da igreja da qual o visitante é membro.');
 
     const criando = !editing;
@@ -121,7 +140,7 @@ export default function VisitantesPage() {
           <div className="form-grid">
             <FormField label="Data da visita"><input type="date" value={form.dataVisita} onChange={(e) => setForm({ ...form, dataVisita: e.target.value })} /></FormField>
             <FormField label="Nome"><input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></FormField>
-            <FormField label="Telefone com DDD"><input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(27) 99999-9999" /></FormField>
+            <FormField label="Telefone com DDD"><input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: formatarTelefone(e.target.value) })} placeholder="(27) 99999-9999" inputMode="tel" maxLength={15} /></FormField>
             <FormField label="Bairro"><input value={form.bairro} onChange={(e) => setForm({ ...form, bairro: e.target.value })} /></FormField>
             <FormField label="Cidade"><input value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} /></FormField>
             <FormField label="Data de nascimento"><input type="date" value={form.dataNascimento} onChange={(e) => setForm({ ...form, dataNascimento: e.target.value })} /></FormField>
