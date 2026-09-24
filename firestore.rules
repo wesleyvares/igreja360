@@ -4,7 +4,7 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function userDoc() { return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)); }
     function userData() { return userDoc().data; }
-    function activeUser() { return signedIn() && userDoc().exists() && userData().ativo == true; }
+    function activeUser() { return signedIn() && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)) && userData().ativo == true; }
     function sameChurch(igrejaId) { return activeUser() && userData().igrejaId == igrejaId; }
     function roleIn(roles) { return activeUser() && userData().perfil in roles; }
     function isAdminOrPastor() { return roleIn(['pastor', 'admin']); }
