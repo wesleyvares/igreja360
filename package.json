@@ -24,6 +24,8 @@
   "devDependencies": {
     "eslint": "latest",
     "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/react-dom": "latest",
+    "@eslint/js": "latest",
+    "typescript-eslint": "latest"
   }
 }
