@@ -31,10 +31,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const firebaseAuth = auth;
+    const firestoreDb = db;
+
+    const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       if (!firebaseUser) { setUser(null); setLoading(false); return; }
       try {
-        const snap = await getDoc(doc(db, 'usuarios', firebaseUser.uid));
+        const snap = await getDoc(doc(firestoreDb, 'usuarios', firebaseUser.uid));
         if (!snap.exists()) {
           setUser({ uid: firebaseUser.uid, nome: firebaseUser.displayName || firebaseUser.email || 'Usuário',
             email: firebaseUser.email || '', perfil: 'membro', igrejaId: defaultIgrejaId, ativo: false });
