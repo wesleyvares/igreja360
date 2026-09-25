@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import { Bell, CalendarDays, Church, ClipboardCheck, ClipboardList, DollarSign, FileClock, Home, LogOut, Megaphone, Radio, Settings, Users, UserRoundPlus, Workflow } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { accessByPath, podeAcessar } from '../config/access';
@@ -14,15 +14,15 @@ const links = [
 ];
 
 export default function AppLayout() {
- const {user,signOut,demoMode}=useAuth(); const navigate=useNavigate();
+ const {user,signOut,demoMode}=useAuth();
  const linksPermitidos=links.filter(i=>accessByPath[i.to]&&podeAcessar(user?.perfil,i.to));
- function abrir(item:(typeof links)[number]) {
-   if (pilotEnabled.has(item.to)) { navigate(item.to); return; }
+ function emBreve(event: React.MouseEvent<HTMLAnchorElement>) {
+   event.preventDefault();
    window.alert('Em breve em produção, aguarde novidades! Deus te abençoe 🙏❤️‍🔥!');
  }
  return <div className="app-shell"><aside className="sidebar"><div className="sidebar-brand"><div className="brand-mark"><Church size={24}/></div><div><strong>Igreja 360</strong><span>Piloto Casa do Céu</span></div></div>
  <nav className="sidebar-nav">{linksPermitidos.map(item=>{const Icon=item.icon; return pilotEnabled.has(item.to)
- ? <NavLink key={item.to} to={item.to} className={({isActive})=>`nav-item ${isActive?'active':''}`}><Icon size={18}/><span>{item.label}</span></NavLink>
- : <button key={item.to} type="button" className="nav-item" onClick={()=>abrir(item)}><Icon size={18}/><span>{item.label}</span></button>})}</nav></aside>
+ ? <NavLink key={item.to} to={item.to} className={({isActive})=>`nav-item pilot-live ${isActive?'active':''}`}><Icon size={18}/><span>{item.label}</span></NavLink>
+ : <NavLink key={item.to} to={item.to} className="nav-item" onClick={emBreve}><Icon size={18}/><span>{item.label}</span></NavLink>})}</nav></aside>
  <div className="main-area"><header className="topbar"><div><h1>Igreja 360</h1><p>Piloto inicial: visitantes e relatórios de célula.</p></div><div className="topbar-actions">{demoMode&&<span className="demo-pill">Modo demonstração</span>}<div className="user-chip"><strong>{user?.nome}</strong><span>{user?.perfil}</span></div><button className="btn btn-soft" onClick={signOut}><LogOut size={16}/> Sair</button></div></header><main className="container"><Outlet/></main></div></div>;
 }
