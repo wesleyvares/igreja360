@@ -24,17 +24,17 @@ export function mensagemAvisosVigentes(nome: string, avisos: Aviso[]) {
     .map((a) => `📌 *${a.titulo}*\n${a.mensagem}${a.validadeAte ? `\nVálido até ${dataBR(a.validadeAte)}` : ''}`)
     .join('\n\n');
 
-  return `Olá, ${primeiroNome}! 💛 Temos alguns avisos importantes da ${config.nomeIgreja}:\n\n${lista}\n\n${config.assinatura || config.nomeIgreja}`;
+  return `Olá, ${primeiroNome}. Temos alguns avisos importantes da ${config.nomeIgreja}:\n\n${lista}\n\nSe precisar de alguma informação, estamos à disposição.\n\n${config.assinatura || config.nomeIgreja}`;
 }
 
 export function mensagemEvento(evento: Evento, tipo: 'convite' | 'reforco' = 'convite', nome?: string) {
   const config = getChurchCommunicationConfig();
-  const saudacao = nome ? `Olá, ${nome.trim().split(/\s+/)[0]}! ` : '';
+  const saudacao = nome ? `Olá, ${nome.trim().split(/\s+/)[0]}. ` : '';
   const abertura = tipo === 'convite'
-    ? 'Queremos te fazer um convite especial.'
-    : 'Passando para reforçar nosso convite.';
+    ? 'Gostaríamos de fazer um convite para você.'
+    : 'Gostaríamos de reforçar nosso convite.';
 
-  return `${saudacao}${abertura} 💛\n\n📅 *${evento.titulo}*\n🗓️ ${dataBR(evento.data)}${evento.horario ? ` às ${evento.horario}` : ''}${evento.local ? `\n📍 ${evento.local}` : ''}${evento.descricao ? `\n\n${evento.descricao}` : ''}\n\nEsperamos você!\n\n${config.assinatura || config.nomeIgreja}`;
+  return `${saudacao}${abertura}\n\n*${evento.titulo}*\nData: ${dataBR(evento.data)}${evento.horario ? ` às ${evento.horario}` : ''}${evento.local ? `\nLocal: ${evento.local}` : ''}${evento.descricao ? `\n\n${evento.descricao}` : ''}\n\nSerá muito bom receber sua visita.\n\n${config.assinatura || config.nomeIgreja}`;
 }
 
 export type ContatoEvento = {
