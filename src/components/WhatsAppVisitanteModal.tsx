@@ -26,21 +26,21 @@ export default function WhatsAppVisitanteModal({ open, visitante, celulas, onClo
     const primeiroNome = visitante.nome.trim().split(/\s+/)[0] || visitante.nome;
     const celulasAtivas = celulas
       .filter((c) => c.status === 'Ativa')
-      .map((c) => `• ${c.nome}: ${c.diaSemana || 'dia a confirmar'} às ${c.horario || 'horário a confirmar'}${c.bairro ? ` - ${c.bairro}` : ''}`)
+      .map((c) => `${c.nome}: ${c.diaSemana || 'dia a confirmar'} às ${c.horario || 'horário a confirmar'}${c.bairro ? ` - ${c.bairro}` : ''}`)
       .join('\n');
 
     const infoCultos = config.cultos?.trim() || 'Consulte nossa equipe para os próximos horários.';
-    const infoCelulas = celulasAtivas || 'Temos células durante a semana. Posso te ajudar a encontrar a mais próxima.';
-    const instagram = config.instagramUrl?.trim() ? `\n📲 Instagram: ${config.instagramUrl.trim()}` : '';
-    const endereco = config.endereco?.trim() ? `\n📍 ${config.endereco.trim()}` : '';
+    const infoCelulas = celulasAtivas || 'Temos células durante a semana. Podemos ajudar a encontrar a opção mais próxima.';
+    const instagram = config.instagramUrl?.trim() ? `\nInstagram: ${config.instagramUrl.trim()}` : '';
+    const endereco = config.endereco?.trim() ? `\nEndereço: ${config.endereco.trim()}` : '';
     const assinatura = config.assinatura?.trim() || config.nomeIgreja;
 
     return {
-      boasVindasCulto: `Olá, ${primeiroNome}! 💛 Foi uma alegria receber você na ${config.nomeIgreja}. Esperamos que tenha se sentido acolhido(a).\n\n⛪ Nossos cultos:\n${infoCultos}${endereco}${instagram}\n\nSe precisar de oração, informação ou quiser conhecer uma célula, pode falar com a gente por aqui. Aqui você é visto, cuidado e amado.\n\n${assinatura}`,
-      boasVindasCelula: `Olá, ${primeiroNome}! 💛 Foi muito bom receber você em uma de nossas células. Queremos continuar caminhando perto de você.\n\n🏠 Células:\n${infoCelulas}\n\n⛪ Cultos:\n${infoCultos}${instagram}\n\nSe quiser, podemos te ajudar a encontrar a célula mais próxima ou o melhor horário para você.\n\n${assinatura}`,
-      sentimosFalta: `Oi, ${primeiroNome}! 💛 Passando para dizer que sentimos sua falta e esperamos que esteja tudo bem com você. Não é cobrança, é carinho mesmo.\n\nQuando puder, será uma alegria receber você novamente na ${config.nomeIgreja}.\n\n⛪ Cultos:\n${infoCultos}\n\n🏠 Células:\n${infoCelulas}${instagram}\n\nSe precisar de oração ou de alguém para conversar, estamos por aqui.\n\n${assinatura}`,
-      conviteCulto: `Oi, ${primeiroNome}! Tudo bem? 😊 Queremos te fazer um convite especial para estar conosco em um dos próximos cultos da ${config.nomeIgreja}.\n\n⛪ Horários:\n${infoCultos}${endereco}${instagram}\n\nVai ser muito bom te receber novamente. 💛\n\n${assinatura}`,
-      conviteCelula: `Oi, ${primeiroNome}! 💛 Queremos te convidar para participar de uma célula da ${config.nomeIgreja}. É um ambiente mais próximo para comunhão, cuidado, oração e crescimento.\n\n🏠 Opções de células:\n${infoCelulas}\n\nSe me disser qual bairro e dia ficam melhores para você, posso te ajudar a escolher.\n\n${assinatura}`
+      boasVindasCulto: `Olá, ${primeiroNome}. Foi muito bom receber sua visita na ${config.nomeIgreja}. Esperamos que esse momento tenha sido especial e que você tenha se sentido à vontade conosco.\n\nNossos cultos:\n${infoCultos}${endereco}${instagram}\n\nSe precisar de oração, alguma informação ou quiser conhecer uma de nossas células, estamos à disposição por aqui. Aqui você é visto, cuidado e amado.\n\n${assinatura}`,
+      boasVindasCelula: `Olá, ${primeiroNome}. Foi muito bom receber sua visita em uma de nossas células. Esperamos que tenha sido um momento especial de comunhão e crescimento.\n\nCélulas:\n${infoCelulas}\n\nCultos:\n${infoCultos}${instagram}\n\nCaso queira conhecer outra célula ou precise de alguma informação, estamos à disposição.\n\n${assinatura}`,
+      sentimosFalta: `Olá, ${primeiroNome}. Sentimos sua falta nos últimos encontros e esperamos que esteja tudo bem. Este é apenas um contato de cuidado para dizer que será muito bom receber sua visita novamente na ${config.nomeIgreja}.\n\nCultos:\n${infoCultos}\n\nCélulas:\n${infoCelulas}${instagram}\n\nSe precisar de oração, alguma informação ou quiser conversar, estamos à disposição.\n\n${assinatura}`,
+      conviteCulto: `Olá, ${primeiroNome}. Gostaríamos de fazer um convite para estar conosco em um dos próximos cultos da ${config.nomeIgreja}.\n\nHorários:\n${infoCultos}${endereco}${instagram}\n\nSerá muito bom receber sua visita novamente.\n\n${assinatura}`,
+      conviteCelula: `Olá, ${primeiroNome}. Gostaríamos de convidar você para participar de uma célula da ${config.nomeIgreja}. É um ambiente de comunhão, cuidado, oração e crescimento.\n\nOpções de células:\n${infoCelulas}\n\nSe quiser, podemos ajudar a encontrar a opção mais adequada de acordo com o bairro, dia e horário.\n\n${assinatura}`
     };
   }, [visitante, celulas, open]);
 
@@ -84,19 +84,19 @@ export default function WhatsAppVisitanteModal({ open, visitante, celulas, onClo
         <div className="whatsapp-templates">
           <strong>Escolha uma mensagem</strong>
           <button className={`template-card ${templateId === 'boasVindasCulto' ? 'selected' : ''}`} onClick={() => selecionarTemplate('boasVindasCulto')} type="button">
-            <span>👋</span><div><b>Boas-vindas ao culto</b><small>Para quem visitou a igreja pela primeira vez.</small></div>
+            <div><b>Boas-vindas ao culto</b><small>Para quem visitou a igreja pela primeira vez.</small></div>
           </button>
           <button className={`template-card ${templateId === 'boasVindasCelula' ? 'selected' : ''}`} onClick={() => selecionarTemplate('boasVindasCelula')} type="button">
-            <span>🏠</span><div><b>Boas-vindas à célula</b><small>Para quem participou de uma célula.</small></div>
+            <div><b>Boas-vindas à célula</b><small>Para quem participou de uma célula.</small></div>
           </button>
           <button className={`template-card ${templateId === 'sentimosFalta' ? 'selected' : ''}`} onClick={() => selecionarTemplate('sentimosFalta')} type="button">
-            <span>💛</span><div><b>Sentimos sua falta</b><small>Contato cuidadoso com quem deixou de frequentar.</small></div>
+            <div><b>Sentimos sua falta</b><small>Contato cuidadoso com quem deixou de frequentar.</small></div>
           </button>
           <button className={`template-card ${templateId === 'conviteCulto' ? 'selected' : ''}`} onClick={() => selecionarTemplate('conviteCulto')} type="button">
-            <span>⛪</span><div><b>Convite para culto</b><small>Convite simples com horários e Instagram.</small></div>
+            <div><b>Convite para culto</b><small>Convite simples com horários e Instagram.</small></div>
           </button>
           <button className={`template-card ${templateId === 'conviteCelula' ? 'selected' : ''}`} onClick={() => selecionarTemplate('conviteCelula')} type="button">
-            <span>🤝</span><div><b>Convite para célula</b><small>Mostra automaticamente as células ativas.</small></div>
+            <div><b>Convite para célula</b><small>Mostra automaticamente as células ativas.</small></div>
           </button>
         </div>
 
