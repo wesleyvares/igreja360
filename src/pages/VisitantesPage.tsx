@@ -36,6 +36,25 @@ function telefoneValido(valor: string) {
   return true;
 }
 
+function faixaEtariaPorNascimento(dataNascimento: string) {
+  if (!dataNascimento) return '';
+  const nascimento = new Date(`${dataNascimento}T00:00:00`);
+  if (Number.isNaN(nascimento.getTime())) return '';
+
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  const aniversarioAindaNaoChegou =
+    hoje.getMonth() < nascimento.getMonth() ||
+    (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() < nascimento.getDate());
+
+  if (aniversarioAindaNaoChegou) idade -= 1;
+  if (idade < 0) return '';
+  if (idade >= 80) return '80+';
+
+  const inicio = Math.floor(idade / 10) * 10;
+  return `${inicio}-${inicio + 9}`;
+}
+
 const initialForm: Omit<Visitante, 'id'> = {
   igrejaId: '', nome: '', telefone: '', dataVisita: '', bairro: '', cidade: '', dataNascimento: '', faixaEtaria: '',
   estadoCivil: '', comoConheceu: '', membroOutraIgreja: 'Não', nomeOutraIgreja: '',
@@ -143,7 +162,10 @@ export default function VisitantesPage() {
             <FormField label="Telefone com DDD"><input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: formatarTelefone(e.target.value) })} placeholder="(27) 99999-9999" inputMode="tel" maxLength={15} /></FormField>
             <FormField label="Bairro"><input value={form.bairro} onChange={(e) => setForm({ ...form, bairro: e.target.value })} /></FormField>
             <FormField label="Cidade"><input value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} /></FormField>
-            <FormField label="Data de nascimento"><input type="date" value={form.dataNascimento} onChange={(e) => setForm({ ...form, dataNascimento: e.target.value })} /></FormField>
+            <FormField label="Data de nascimento"><input type="date" value={form.dataNascimento} onChange={(e) => {
+              const dataNascimento = e.target.value;
+              setForm({ ...form, dataNascimento, faixaEtaria: faixaEtariaPorNascimento(dataNascimento) });
+            }} /></FormField>
             <FormField label="Faixa etária"><select value={form.faixaEtaria} onChange={(e) => setForm({ ...form, faixaEtaria: e.target.value })}><option value="">Selecione</option>{faixasEtarias.map((f) => <option key={f}>{f}</option>)}</select></FormField>
             <FormField label="Estado civil"><select value={form.estadoCivil} onChange={(e) => setForm({ ...form, estadoCivil: e.target.value })}><option value="">Selecione</option>{estadosCivis.map((v) => <option key={v}>{v}</option>)}</select></FormField>
             <FormField label="Como conheceu a igreja?"><select value={form.comoConheceu} onChange={(e) => setForm({ ...form, comoConheceu: e.target.value })}><option value="">Selecione</option>{comoConheceuOpcoes.map((v) => <option key={v}>{v}</option>)}</select></FormField>
