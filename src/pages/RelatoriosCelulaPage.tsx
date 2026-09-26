@@ -81,6 +81,14 @@ export default function RelatoriosCelulaPage() {
   const ultimaReuniao = relatoriosFiltrados[0]?.dataReuniao || '';
 
   function montarPresencas(celulaId: string) {
+    const celula = celulas.find((c) => c.id === celulaId);
+    const participantes = (celula?.participantes || [])
+      .filter((p) => p.status === 'Ativo')
+      .sort((a, b) => a.nome.localeCompare(b.nome))
+      .map((p) => ({ membroId: p.id, nome: p.nome, presente: false }));
+
+    if (participantes.length) return participantes;
+
     return membros
       .filter((m) => m.celulaId === celulaId && m.status !== 'Inativo')
       .sort((a, b) => a.nome.localeCompare(b.nome))
@@ -356,7 +364,7 @@ export default function RelatoriosCelulaPage() {
           <div className="attendance-section">
             <div className="attendance-header">
               <div>
-                <h3><Users size={18} /> Presença dos membros</h3>
+                <h3><Users size={18} /> Presença dos participantes</h3>
                 <p>Marque quem participou da reunião. Quem não estiver marcado será contabilizado como ausente.</p>
               </div>
               <div className="actions">
@@ -373,7 +381,7 @@ export default function RelatoriosCelulaPage() {
                   <b>{presenca.presente ? 'Presente' : 'Ausente'}</b>
                 </label>
               ))}
-              {!form.presencas.length && <div className="empty">Nenhum membro vinculado a esta célula.</div>}
+              {!form.presencas.length && <div className="empty">Nenhum participante ativo cadastrado nesta célula.</div>}
             </div>
           </div>
 
