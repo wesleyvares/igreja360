@@ -52,6 +52,14 @@ export type Visitante = BaseEntity & {
   observacoes: string;
 };
 
+export type ParticipanteCelula = {
+  id: string;
+  nome: string;
+  telefone: string;
+  status: 'Ativo' | 'Inativo';
+  dataEntrada: string;
+};
+
 export type Celula = BaseEntity & {
   nome: string;
   lider: string;
@@ -65,6 +73,7 @@ export type Celula = BaseEntity & {
   diaSemana: string;
   horario: string;
   membros?: number;
+  participantes?: ParticipanteCelula[];
   status: 'Ativa' | 'Pausada' | 'Em implantação';
 };
 
