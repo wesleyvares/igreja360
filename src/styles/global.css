@@ -290,3 +290,10 @@ tr:hover td { background:#f8fafc; }
 @media(max-width:760px){
   .request-stats{grid-template-columns:repeat(2,1fr)}
 }
+
+
+/* Participantes enxutos da célula no piloto */
+.participant-editor-list { display:grid; gap:9px; padding:14px; }
+.participant-editor-row { display:grid; grid-template-columns:minmax(180px,1.4fr) minmax(150px,1fr) 150px 120px 38px; gap:9px; align-items:center; }
+@media(max-width:900px){.participant-editor-row{grid-template-columns:1fr 1fr}.participant-editor-row .icon-btn{justify-self:start}}
+@media(max-width:600px){.participant-editor-row{grid-template-columns:1fr}}
