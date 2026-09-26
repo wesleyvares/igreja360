@@ -6,7 +6,7 @@ import Modal from '../components/Modal';
 import PageHeader from '../components/PageHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { useChurchData } from '../contexts/ChurchDataContext';
-import { Celula } from '../types';
+import { Celula, ParticipanteCelula } from '../types';
 import { normalizarBusca } from '../utils/format';
 
 function formatarCep(valor: string) {
@@ -21,7 +21,7 @@ function cepValido(valor: string) {
 
 const initialForm: Omit<Celula, 'id'> = {
   igrejaId: '', nome: '', lider: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: 'ES',
-  diaSemana: '', horario: '', status: 'Ativa', ativo: true
+  diaSemana: '', horario: '', participantes: [], status: 'Ativa', ativo: true
 };
 
 export default function CelulasPage() {
@@ -40,7 +40,31 @@ export default function CelulasPage() {
   }, [busca, celulas]);
 
   function qtdMembrosAtivos(celulaId: string) {
+    const celula = celulas.find((c) => c.id === celulaId);
+    if (celula?.participantes?.length) return celula.participantes.filter((p) => p.status === 'Ativo').length;
     return membros.filter((m) => m.celulaId === celulaId && m.status === 'Ativo').length;
+  }
+
+  function adicionarParticipante() {
+    const participante: ParticipanteCelula = {
+      id: crypto.randomUUID(),
+      nome: '',
+      telefone: '',
+      status: 'Ativo',
+      dataEntrada: new Date().toISOString().slice(0, 10)
+    };
+    setForm((atual) => ({ ...atual, participantes: [...(atual.participantes || []), participante] }));
+  }
+
+  function atualizarParticipante(id: string, campo: keyof ParticipanteCelula, valor: string) {
+    setForm((atual) => ({
+      ...atual,
+      participantes: (atual.participantes || []).map((p) => p.id === id ? { ...p, [campo]: valor } : p)
+    }));
+  }
+
+  function removerParticipante(id: string) {
+    setForm((atual) => ({ ...atual, participantes: (atual.participantes || []).filter((p) => p.id !== id) }));
   }
 
   function enderecoCompleto(c: Celula) {
@@ -58,6 +82,7 @@ export default function CelulasPage() {
     e.preventDefault();
     if (!form.nome) return alert('Informe o nome da célula.');
     if (form.cep && !cepValido(form.cep)) return alert('Informe um CEP válido com 8 dígitos. Ex.: 29200-000.');
+    if ((form.participantes || []).some((p) => !p.nome.trim())) return alert('Informe o nome de todos os participantes adicionados.');
     if (editing) await updateItem('celulas', editing.id, form);
     else await createItem('celulas', form);
     setOpen(false);
@@ -94,7 +119,25 @@ export default function CelulasPage() {
           <FormField label="Dia da semana"><input value={form.diaSemana} onChange={(e) => setForm({ ...form, diaSemana: e.target.value })} /></FormField>
           <FormField label="Horário"><input value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} /></FormField>
           <FormField label="Status"><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Celula['status'] })}><option>Ativa</option><option>Pausada</option><option>Em implantação</option></select></FormField>
-        </div><div className="modal-actions-right"><button className="btn btn-soft" type="button" onClick={() => setOpen(false)}>Cancelar</button><button className="btn btn-success" type="submit">Salvar</button></div></form>
+        </div>
+        <section className="cell-report-section">
+          <div className="attendance-header">
+            <div><h3>Participantes da célula</h3><p>Lista enxuta usada para gerar a chamada das reuniões sem liberar o módulo completo de membros.</p></div>
+            <button className="btn btn-soft" type="button" onClick={adicionarParticipante}>+ Adicionar participante</button>
+          </div>
+          <div className="participant-editor-list">
+            {(form.participantes || []).map((p) => (
+              <div className="participant-editor-row" key={p.id}>
+                <input value={p.nome} onChange={(e) => atualizarParticipante(p.id, 'nome', e.target.value)} placeholder="Nome" />
+                <input value={p.telefone} onChange={(e) => atualizarParticipante(p.id, 'telefone', e.target.value)} placeholder="Telefone" inputMode="tel" />
+                <input type="date" value={p.dataEntrada} onChange={(e) => atualizarParticipante(p.id, 'dataEntrada', e.target.value)} />
+                <select value={p.status} onChange={(e) => atualizarParticipante(p.id, 'status', e.target.value)}><option>Ativo</option><option>Inativo</option></select>
+                <button className="icon-btn" type="button" onClick={() => removerParticipante(p.id)} title="Remover participante">✕</button>
+              </div>
+            ))}
+            {!(form.participantes || []).length && <div className="empty compact">Nenhum participante cadastrado nesta célula.</div>}
+          </div>
+        </section><div className="modal-actions-right"><button className="btn btn-soft" type="button" onClick={() => setOpen(false)}>Cancelar</button><button className="btn btn-success" type="submit">Salvar</button></div></form>
       </Modal>
     </>
   );
